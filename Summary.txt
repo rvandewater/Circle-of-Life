@@ -1,0 +1,10 @@
+Game
+-	Use the Gloss library for graphics
+-	The game should have a bit of “action” and “intelligence”
+-	Use good functional programming 
+-	There should be many moving parts or things to handle on screen so no RPG’s or chess, but thinks like arcade, platform, shooters, sports and race games.
+
+
+Preliminary design document
+-	What game do you plan to implement
+-	Rough idea how to implement the game
