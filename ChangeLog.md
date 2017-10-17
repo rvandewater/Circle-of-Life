@@ -1,4 +1,4 @@
-# Revision history for HaskellGame
+# Revision history for CoL
 
 ## 0.1.0.0  -- YYYY-mm-dd
 
