@@ -11,9 +11,11 @@ import System.Random
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate
+step secs gstate@(GameState { paused })
   = -- Just update the elapsed time
-    return $ gstate { elapsedTime = elapsedTime gstate + secs, playerPos = (movementUpdate (keys gstate) (playerPos gstate)) }
+   if (not paused) then return $ gstate { elapsedTime = elapsedTime gstate + secs, playerPos = (movementUpdate (keys gstate) (playerPos gstate)) }
+   else return gstate
+
 
 movementUpdate :: KeysPressed -> Position -> Position
 movementUpdate (KeysPressed w a s d) =  boolupdate w (Move 0 movementSpeed). 
@@ -36,10 +38,8 @@ inputKey :: Event -> GameState -> GameState
            ypos (Position x y) = y
            curposx = xpos playerPos
            curposy = ypos playerPos -}
-
-inputKey (EventKey (Char c) _ _ _) gstate@(GameState { keys, paused })
-  | (c == 'p') =  gstate { paused = (not paused)  }
-  | otherwise = gstate {keys = (updatePress c keys )}
+inputKey (EventKey (Char 'p') Down _ _) gstate@(GameState { keys, paused })= gstate {paused = not paused}
+inputKey (EventKey (Char c) _ _ _) gstate@(GameState { keys, paused })= gstate {keys = (updatePress c keys )}
 {-
 inputKey (EventKey  _ _ _ _) gstate@(GameState {playerPos}) = 
   gstate { playerPos = (updatePos playerPos (Move 0 movementSpeed))  -}
@@ -54,3 +54,4 @@ updatePress 's' keys@(KeysPressed {s}) = keys { s = not s }
 updatePress 'd' keys@(KeysPressed {d}) = keys { d = not d }
 
 updatePress _ x = x
+
