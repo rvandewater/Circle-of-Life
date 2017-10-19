@@ -9,6 +9,6 @@ view :: GameState -> IO Picture
 view = return . viewPure
 
 viewPure :: GameState -> Picture
-viewPure (GameState s (Position xpos ypos) _) = (translate (fromIntegral xpos) (fromIntegral ypos) (color green (thickCircle 20 40)))
+viewPure (GameState s (Position xpos ypos) _ _) = (translate (fromIntegral xpos) (fromIntegral ypos) (color green (thickCircle 20 40)))
 
 

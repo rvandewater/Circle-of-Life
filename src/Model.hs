@@ -19,10 +19,11 @@ data GameState = GameState {
                    elapsedTime :: Float
                  , playerPos :: Position
                  , keys :: KeysPressed
+                 , paused :: Bool
                  }
 
 initialState :: GameState
-initialState = GameState 0 (Position 0 0) (KeysPressed False False False False)
+initialState = GameState 0 (Position 0 0) (KeysPressed False False False False) False
 
 
 movementSpeed :: Int
