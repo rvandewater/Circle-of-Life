@@ -29,7 +29,7 @@ updatePos  (Move xmov ymov) (Position xpos ypos) = Position (xpos + xmov) (ypos 
 updatePosP ::  Move -> Position -> Position
 updatePosP  (Move xmov ymov) (Position xpos ypos) = if validPosition then Position newX newY else Position xpos ypos
   where validPosition :: Bool
-        validPosition = not (outOfBounds (Position newX newY) (Hitbox circleSize circleSize))
+        validPosition = not (outOfBounds (Position newX newY) (HitBox (round circleSize) (round circleSize)))
         newX          = xpos + xmov
         newY          = ypos + ymov
 
