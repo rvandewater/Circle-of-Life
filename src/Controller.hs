@@ -11,14 +11,22 @@ import System.Random
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate@(GameState { paused })
+step secs gstate@(GameState { paused, bullets, playerPos, keys })
   = -- Just update the elapsed time
-   if (not paused) then return $ gstate { elapsedTime = elapsedTime gstate + secs, playerPos = (movementUpdate (keys gstate) (playerPos gstate)) }
+   if (not paused) then return $ gstate { 
+    elapsedTime = elapsedTime gstate + secs, 
+    playerPos = (movementUpdate (keys) (playerPos)),
+    bullets = map bulletUpdate (shootUpdate keys playerPos bullets)}
    else return gstate
 
+bulletUpdate :: Bullet -> Bullet
+bulletUpdate (Bullet pos speed size damage) = Bullet (updatePos speed pos) speed size damage
+
+shootUpdate :: KeysPressed -> Position -> [Bullet] -> [Bullet]
+shootUpdate (KeysPressed w a s d sp) playerpos bullets = if sp then ((Bullet playerpos bulletSpeed bulletBox bulletDamage):bullets) else bullets
 
 movementUpdate :: KeysPressed -> Position -> Position
-movementUpdate (KeysPressed w a s d) =  boolupdate w (Move 0 movementSpeed). 
+movementUpdate (KeysPressed w a s d sp) =  boolupdate w (Move 0 movementSpeed). 
                                       boolupdate a (Move (- movementSpeed) 0).
                                       boolupdate s (Move 0 (- movementSpeed)).
                                       boolupdate d (Move movementSpeed 0)
@@ -39,7 +47,7 @@ inputKey :: Event -> GameState -> GameState
            curposx = xpos playerPos
            curposy = ypos playerPos -}
 inputKey (EventKey (Char 'p') Down _ _) gstate@(GameState { keys, paused })= gstate {paused = not paused}
-inputKey (EventKey (Char c) _ _ _) gstate@(GameState { keys, paused })= gstate {keys = (updatePress c keys )}
+inputKey (EventKey c _ _ _ ) gstate@(GameState { keys, paused }) = gstate {keys = (updatePress c keys )}
 {-
 inputKey (EventKey  _ _ _ _) gstate@(GameState {playerPos}) = 
   gstate { playerPos = (updatePos playerPos (Move 0 movementSpeed))  -}
@@ -47,11 +55,12 @@ inputKey (EventKey  _ _ _ _) gstate@(GameState {playerPos}) =
 
 inputKey _ gstate = gstate -- Otherwise keep the same 
 
-updatePress :: Char -> KeysPressed -> KeysPressed
-updatePress 'w' keys@(KeysPressed {w}) = keys { w = not w }
-updatePress 'a' keys@(KeysPressed {a}) = keys { a = not a }
-updatePress 's' keys@(KeysPressed {s}) = keys { s = not s }
-updatePress 'd' keys@(KeysPressed {d}) = keys { d = not d }
+updatePress :: Key -> KeysPressed -> KeysPressed
+updatePress (Char 'w') keys@(KeysPressed {w}) = keys { w = not w }
+updatePress (Char 'a') keys@(KeysPressed {a}) = keys { a = not a }
+updatePress (Char 's') keys@(KeysPressed {s}) = keys { s = not s }
+updatePress (Char 'd') keys@(KeysPressed {d}) = keys { d = not d }
+updatePress (SpecialKey KeySpace) keys@(KeysPressed {space}) = keys { space = not space}
 
 updatePress _ x = x
 
