@@ -25,6 +25,7 @@ bulletUpdate (Bullet pos speed size damage) = Bullet (updatePos speed pos) speed
 shootUpdate :: KeysPressed -> Position -> [Bullet] -> [Bullet]
 shootUpdate (KeysPressed w a s d sp) playerpos bullets = if sp then ((Bullet playerpos bulletSpeed bulletBox bulletDamage):bullets) else bullets
 
+-- | Updating Position depending on keys pressed
 movementUpdate :: KeysPressed -> Position -> Position
 movementUpdate (KeysPressed w a s d sp) =  boolupdate w (Move 0 movementSpeed). 
                                       boolupdate a (Move (- movementSpeed) 0).
@@ -36,6 +37,7 @@ movementUpdate (KeysPressed w a s d sp) =  boolupdate w (Move 0 movementSpeed).
 input :: Event -> GameState -> IO GameState
 input e gstate = return (inputKey e gstate)
 
+-- | Handle input of a key
 inputKey :: Event -> GameState -> GameState
 {-inputKey (EventKey (Char c) _ _ _) gstate@(GameState {playerPos})
    | c == 'w' = gstate { playerPos = (updatePos playerPos (Move 0 movementSpeed))  }
@@ -52,7 +54,6 @@ inputKey (EventKey c _ _ _ ) gstate@(GameState { keys, paused }) = gstate {keys 
 inputKey (EventKey  _ _ _ _) gstate@(GameState {playerPos}) = 
   gstate { playerPos = (updatePos playerPos (Move 0 movementSpeed))  -}
     -- If the user presses a specific character key, move the player
-
 inputKey _ gstate = gstate -- Otherwise keep the same 
 
 updatePress :: Key -> KeysPressed -> KeysPressed
