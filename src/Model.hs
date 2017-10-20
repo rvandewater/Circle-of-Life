@@ -33,6 +33,14 @@ updatePosP  (Move xmov ymov) (Position xpos ypos) = if validPosition then Positi
         newX          = xpos + xmov
         newY          = ypos + ymov
 
+outOfBounds :: Position -> HitBox -> Bool
+outOfBounds (Position posx posy) (HitBox width height) =  not validPosition 
+  where validPosition :: Bool
+        validPosition =    posx + posx <  screenx - width
+                        && posx + posx> -screenx  + width
+                        && posy + posy <  screeny - height
+                        && posy + posy > -screeny + height
+
 data GameState = GameState {
                    elapsedTime :: Float
                  , playerPos :: Position
@@ -57,14 +65,6 @@ bulletBox = HitBox 10 10
 
 bulletDamage :: Int
 bulletDamage = 5
-
-outOfBounds :: Position -> HitBox -> Bool
-outOfBounds (Position posx posy) (HitBox width height) =  not validPosition 
-  where validPosition :: Bool
-        validPosition =    posx <  screenx  - width
-                        && posx > -screenx  + width
-                        && posy <  screeny  - height
-                        && posy > -screeny  + height
 
 data Bullet = Bullet { position:: Position, speed:: Move, size :: HitBox, damage :: Int}
 
