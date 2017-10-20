@@ -7,11 +7,14 @@ import Model
 
 --Generate display
 view :: GameState -> IO Picture
-view gs = mappend  (viewIO gs) (return (viewPure gs))
+view gs = {-mappend  (viewIO gs)-} (return (viewPure gs))
 
 --Load background
 viewIO :: GameState -> IO Picture
-viewIO gs = loadBMP "bg.bmp"
+viewIO gs = image
+
+image :: IO Picture
+image = loadBMP "bg.bmp"
 
 viewPure :: GameState -> Picture
 --Pause scren
