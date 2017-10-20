@@ -16,8 +16,21 @@ step secs gstate@(GameState { paused, bullets, playerPos, keys })
    if (not paused) then return $ gstate { 
     elapsedTime = elapsedTime gstate + secs, 
     playerPos = (movementUpdate (keys) (playerPos)),
-    bullets = map bulletUpdate (shootUpdate keys playerPos bullets)}
+    bullets = bulletListUpdate (shootUpdate keys playerPos bullets)}
    else return gstate
+
+bulletListUpdate :: [Bullet] -> [Bullet]
+bulletListUpdate bullets = map bulletUpdate (filter (\(Bullet pos speed size damage) -> outOfBounds pos size) bullets)
+
+
+outOfBounds :: Position -> HitBox -> Bool
+outOfBounds (Position posx posy) (HitBox width height) =  not validPosition 
+  where validPosition :: Bool
+        validPosition =    posx + posy <  screenx  - width
+                        && posx + posx > -screenx  + width
+                        && posy + posy <  screeny  - height
+                        && posx + posy > -screeny  + height
+
 
 bulletUpdate :: Bullet -> Bullet
 bulletUpdate (Bullet pos speed size damage) = Bullet (updatePos speed pos) speed size damage
