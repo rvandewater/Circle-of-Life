@@ -20,7 +20,7 @@ step secs gstate@(GameState { paused, bullets, playerPos, keys })
    else return gstate
 
 bulletListUpdate :: [Bullet] -> [Bullet]
-bulletListUpdate bullets = map bulletUpdate (filter (\(Bullet pos speed size damage) -> outOfBounds pos size) bullets)
+bulletListUpdate bullets = map bulletUpdate (filter (\(Bullet pos speed size damage) -> not(outOfBounds pos size)) bullets)
 
 
 
