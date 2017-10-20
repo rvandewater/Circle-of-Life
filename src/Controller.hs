@@ -23,13 +23,7 @@ bulletListUpdate :: [Bullet] -> [Bullet]
 bulletListUpdate bullets = map bulletUpdate (filter (\(Bullet pos speed size damage) -> outOfBounds pos size) bullets)
 
 
-outOfBounds :: Position -> HitBox -> Bool
-outOfBounds (Position posx posy) (HitBox width height) =  not validPosition 
-  where validPosition :: Bool
-        validPosition =    posx + posy <  screenx  - width
-                        && posx + posx > -screenx  + width
-                        && posy + posy <  screeny  - height
-                        && posx + posy > -screeny  + height
+
 
 
 bulletUpdate :: Bullet -> Bullet
@@ -44,7 +38,7 @@ movementUpdate (KeysPressed w a s d sp) =  boolupdate w (Move 0 movementSpeed).
                                       boolupdate a (Move (- movementSpeed) 0).
                                       boolupdate s (Move 0 (- movementSpeed)).
                                       boolupdate d (Move movementSpeed 0)
-                              where boolupdate True mov = updatePos mov
+                              where boolupdate True mov = updatePosP mov
                                     boolupdate False _ = id
 -- | Handle user input
 input :: Event -> GameState -> IO GameState

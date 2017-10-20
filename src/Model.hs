@@ -58,6 +58,14 @@ bulletBox = HitBox 10 10
 bulletDamage :: Int
 bulletDamage = 5
 
+outOfBounds :: Position -> HitBox -> Bool
+outOfBounds (Position posx posy) (HitBox width height) =  not validPosition 
+  where validPosition :: Bool
+        validPosition =    posx <  screenx  - width
+                        && posx > -screenx  + width
+                        && posy <  screeny  - height
+                        && posy > -screeny  + height
+
 data Bullet = Bullet { position:: Position, speed:: Move, size :: HitBox, damage :: Int}
 
 data HitBox = HitBox { width :: Int, height :: Int}
