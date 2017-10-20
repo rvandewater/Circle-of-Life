@@ -10,7 +10,10 @@ data GameState = GameState {
                  , player :: Player
                  , keys :: KeysPressed
                  , paused :: Bool
+                 , lost :: Bool
                  , bullets :: [Bullet]
+                 , enemies :: [Enemy]
+                 , level :: Int
                  }
 
 data Bullet = Bullet { position:: Position, speed:: Move, size :: HitBox, damage :: Int}
@@ -18,6 +21,8 @@ data Bullet = Bullet { position:: Position, speed:: Move, size :: HitBox, damage
 data HitBox = HitBox { width :: Int, height :: Int}   
 
 data Player = Player { pos :: Position, hitbox :: HitBox }
+
+data Enemy = Enemy { enemypos :: Position, enemyhitbox :: HitBox }
 
 data Position = Position { xpos :: Int, ypos :: Int }
 
@@ -51,7 +56,7 @@ outOfBounds (Position posx posy) (HitBox width height) =  not validPosition
 -- ********************* CONSTANTS ***************
 initialState :: GameState
 --Starting phase
-initialState = GameState 0 (Player beginPos playerHitBox) (KeysPressed False False False False False) False []
+initialState = GameState 0 (Player beginPos playerHitBox) (KeysPressed False False False False False) False False [] [] 1
 
 --moventSpeed of the player
 movementSpeed :: Int
