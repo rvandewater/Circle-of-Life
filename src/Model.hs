@@ -21,17 +21,17 @@ screeny = 1280
 circleSize :: Float
 circleSize = 20
 
--- | update position, if it is inside the bounds
+-- | update position
 updatePos ::  Move -> Position -> Position
-updatePos  (Move xmov ymov) (Position xpos ypos) = if validPosition then Position newX newY else Position xpos ypos
+updatePos  (Move xmov ymov) (Position xpos ypos) = Position (xpos + xmov) (ypos + ymov)
+
+-- | update position, if it is inside the bounds
+updatePosP ::  Move -> Position -> Position
+updatePosP  (Move xmov ymov) (Position xpos ypos) = if validPosition then Position newX newY else Position xpos ypos
   where validPosition :: Bool
-        validPosition =    newX + newX <  screenx - round circleSize 
-                        && newX + newX > -screenx + round circleSize 
-                        && newY + newY <  screeny - round circleSize 
-                        && newY + newY > -screeny + round circleSize 
+        validPosition = not (outOfBounds (Position newX newY) (Hitbox circleSize circleSize))
         newX          = xpos + xmov
         newY          = ypos + ymov
-
 
 data GameState = GameState {
                    elapsedTime :: Float
