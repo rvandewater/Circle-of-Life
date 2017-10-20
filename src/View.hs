@@ -5,10 +5,16 @@ module View where
 import Graphics.Gloss
 import Model
 
+--Generate display
 view :: GameState -> IO Picture
-view = return . viewPure
---Pause screen
+view gs = mappend  (viewIO gs) (return (viewPure gs))
+
+--Load background
+viewIO :: GameState -> IO Picture
+viewIO gs = loadBMP "bg.bmp"
+
 viewPure :: GameState -> Picture
+--Pause scren
 viewPure (GameState _ _ _ True _ _ _ _) = translate (-200) 0 (color green (Text "Paused"))
 
 --Default game screen
