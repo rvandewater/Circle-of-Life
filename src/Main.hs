@@ -7,7 +7,7 @@ module Main where
     import Graphics.Gloss.Interface.IO.Game
     
     main :: IO ()
-    main = playIO (InWindow "Circle of Life" (720, 1280) (0, 0)) -- Or FullScreen
+    main = playIO (InWindow "Circle of Life" (screenx, screeny) (0, 0)) -- Or FullScreen
                   black            -- Background color
                   60               -- Frames per second
                   initialState     -- Initial state
