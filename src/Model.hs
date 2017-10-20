@@ -56,7 +56,7 @@ outOfBounds (Position posx posy) (HitBox width height) =  not validPosition
 -- ********************* CONSTANTS ***************
 initialState :: GameState
 --Starting phase
-initialState = GameState 0 (Player beginPos playerHitBox) (KeysPressed False False False False False) False False [] [] 1
+initialState = GameState 0 (Player beginPos playerHitBox) (KeysPressed False False False False False) False False [] [Enemy beginPos playerHitBox] 1
 
 --moventSpeed of the player
 movementSpeed :: Int
