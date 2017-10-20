@@ -9,21 +9,22 @@ data Position = Position { xpos :: Int, ypos :: Int }
 data Move = Move { xmov :: Int, ymov :: Int }
 
 data KeysPressed = KeysPressed { w :: Bool, a :: Bool, s :: Bool, d:: Bool }
-nO_SECS_BETWEEN_CYCLES :: Float
-nO_SECS_BETWEEN_CYCLES = 5
 
 screenx :: Int 
 screenx = 720
 screeny :: Int
 screeny = 1280
+circleSize :: Float
+circleSize = 20
 
+-- | update position, if it is inside the bounds
 updatePos ::  Move -> Position -> Position
 updatePos  (Move xmov ymov) (Position xpos ypos) = if validPosition then Position newX newY else Position xpos ypos
   where validPosition :: Bool
-        validPosition =    newX + newX <  screenx
-                        && newX + newX > -screenx
-                        && newY + newY <  screeny
-                        && newY + newY > -screeny
+        validPosition =    newX + newX <  screenx - round circleSize 
+                        && newX + newX > -screenx + round circleSize 
+                        && newY + newY <  screeny - round circleSize 
+                        && newY + newY > -screeny + round circleSize 
         newX          = xpos + xmov
         newY          = ypos + ymov
 
