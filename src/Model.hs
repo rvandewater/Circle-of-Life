@@ -11,13 +11,8 @@ data Position = Position { xpos :: Int, ypos :: Int }
 
 data Move = Move { xmov :: Int, ymov :: Int }
 
-<<<<<<< HEAD
 data KeysPressed = KeysPressed { w :: Bool, a :: Bool, s :: Bool, d:: Bool, space :: Bool }
-nO_SECS_BETWEEN_CYCLES :: Float
-nO_SECS_BETWEEN_CYCLES = 5
-=======
-data KeysPressed = KeysPressed { w :: Bool, a :: Bool, s :: Bool, d:: Bool }
->>>>>>> origin/master
+
 
 screenx :: Int 
 screenx = 720
