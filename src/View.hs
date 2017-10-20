@@ -8,11 +8,14 @@ import Graphics.Gloss
 import Model
 
 view :: GameState -> IO Picture
-view = return . viewPure
+view gs = mappend  (viewIO gs) (return (viewPure gs))
 
 viewPure :: GameState -> Picture
 viewPure (GameState _ _ _ True _ _ _ _) = translate (-200) 0 (color green (Text "Paused"))
 viewPure gstate = pictures [playerVisual gstate, bulletVisual gstate]
+
+viewIO :: GameState -> IO Picture
+viewIO gs = loadBMP "bg.bmp"
 
 --generating player
 playerVisual :: GameState -> Picture 
