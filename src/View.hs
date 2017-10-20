@@ -12,7 +12,9 @@ view = return . viewPure
 
 viewPure :: GameState -> Picture
 viewPure (GameState _ _ _ True _) = translate (-200) 0 (color green (Text "Paused"))
-viewPure gstate@(GameState s (Position xpos ypos) _ _ bul) = pictures [(translate (fromIntegral xpos) (fromIntegral ypos) (color green (thickCircle 10 circleSize))), bulletVisual gstate]
+viewPure gstate@(GameState s (Player (Position xpos ypos) (HitBox x y) ) _ _ bul) = 
+    pictures [(translate (fromIntegral xpos) (fromIntegral ypos) (color green (thickCircle 10 (fromIntegral x))))
+    , bulletVisual gstate]
 
 bulletVisual :: GameState -> Picture 
 bulletVisual gstate@(GameState {bullets}) = pictures (map bulletsDraw bullets)
