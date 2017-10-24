@@ -11,27 +11,33 @@ import System.Random
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate@(GameState { paused, player = player@(Player {pos, hitbox, fireRate, bullet }), keys })=
+step secs gstate@(GameState { paused, player = player@(Player {pos, hitbox, fireRate, bullet, health }), keys })=
     if (not paused) then return $ gstate { 
     elapsedTime = elapsedTime gstate + secs, 
-    player = player {pos =  movementUpdate keys pos, lastFire = fire},
-    bullets = bulletListUpdate (bulletlist) }
+    player = player {pos =  movementUpdate keys pos, lastFire = fire, health = health - dmg},
+    bullets = bulletshit }
     else return gstate
      where (bulletlist , fire) = shootUpdate secs gstate
-           
+           (bulletshit , dmg) = bulletListUpdate (gstate {bullets = bulletlist})
+     
             
           
          
 
-bulletListUpdate :: [Bullet] -> [Bullet]
-bulletListUpdate bullets = map bulletUpdate (filter (\(Bullet pos (BulletType speed size bulletDamage)) -> not(outOfBounds pos size)) bullets)
+bulletListUpdate :: GameState -> ([Bullet], Float)
+bulletListUpdate (GameState { player = player@(Player {health}), bullets}) =
+  (map bulletUpdate (filter (\thisBull@(Bullet pos (BulletType speed size bulletDamage )) -> not(outOfBounds pos size) && (isHit player thisBull < 1) ) bullets), totaldam )
+    where totaldam = (sum (map (isHit player) bullets  ))
+
 
 bulletUpdate :: Bullet -> Bullet
 bulletUpdate (Bullet pos (BulletType speed box dmg) ) = (Bullet (updatePos speed pos) (BulletType speed box dmg))
 
+
+
 shootUpdate :: Float -> GameState -> ([Bullet],Float)
-shootUpdate secs gstate@(GameState { elapsedTime, bullets, player = player@(Player {pos, hitbox, fireRate, bullet, lastFire }), keys = keys@(KeysPressed {space})}) 
-  | canshoot = ((Bullet pos bullet): (bullets), 0 ) 
+shootUpdate secs gstate@(GameState { elapsedTime, bullets, player = player@(Player {pos = (Position {xpos,ypos}), hitbox, fireRate, bullet, lastFire }), keys = keys@(KeysPressed {space})}) 
+  | canshoot = ((Bullet (Position xpos (ypos + 20)) bullet): (bullets), 0 ) 
   | otherwise = (bullets, lastFire + secs )
     where canshoot = space && (lastFire> fireRate)
  

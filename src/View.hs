@@ -20,18 +20,18 @@ viewPure :: GameState -> Picture
 viewPure (GameState _ _ _ True _ _ _ _) = translate (-200) 0 (color green (Text "Paused"))
 
 --Default game screen
-viewPure gstate = pictures [playerVisual gstate, bulletVisual gstate, enemyVisual gstate]
+viewPure gstate = pictures [playerVisual gstate, bulletVisual gstate, enemyVisual gstate,  translate 170 550 (color red (text (show (health(player gstate)))))]
 
 --Visualizing player
 playerVisual :: GameState -> Picture 
-playerVisual gstate@(GameState s (Player (Position xpos ypos) (HitBox x y) _ _ _ ) _ _ bul _ _ _) = translate (fromIntegral xpos) (fromIntegral ypos) (color green (thickCircle 10 (fromIntegral x)))
+playerVisual gstate@(GameState s (Player (Position xpos ypos) (HitBox x y) _ _ _ _) _ _ bul _ _ _) = translate (fromIntegral xpos) (fromIntegral ypos) (color green (thickCircle 10 (fromIntegral x)))
 
 --Visualizing each enemy
 enemyVisual :: GameState -> Picture
 enemyVisual gstate@(GameState _ _ _ _ _ _ enemies _) = pictures (map enemyPic enemies)
 
 enemyPic :: Enemy -> Picture
-enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _) = translate (fromIntegral xpos) (fromIntegral ypos) (color red (rectangleSolid 50 50))
+enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _) = translate (fromIntegral xpos) (fromIntegral ypos) (color red (rectangleSolid 50 50))
 
 --Visualizing bullets
 bulletVisual :: GameState -> Picture 
