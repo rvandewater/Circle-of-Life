@@ -2,25 +2,24 @@
 --   the game state into a picture
 {-# language NamedFieldPuns #-}
 module View where
-import System.IO.Unsafe (unsafePerformIO)
 import Graphics.Gloss
 import Model
+import Data.Fixed
 
 --Generate display
-view :: GameState -> IO Picture
-view gs = return (pictures [backGround gs, viewPure gs])
+view :: Picture -> GameState -> IO Picture
+view bg gs = return (viewPure bg gs)
 
---Generating background
-backGround :: GameState -> Picture
-{-# NOINLINE backGround #-} 
-backGround gs = unsafePerformIO $ loadBMP "bg.bmp"
-
-viewPure :: GameState -> Picture
+viewPure :: Picture -> GameState -> Picture
 --Pause screen
-viewPure (GameState _ _ _ True _ _ _ _) = translate (-200) 0 (color green (Text "Paused"))
+viewPure _ (GameState _ _ _ True _ _ _ _) = translate (-200) 0 (color green (Text "Paused"))
 
 --Default game screen
-viewPure gstate = pictures [playerVisual gstate, bulletVisual gstate, enemyVisual gstate]
+viewPure bg gs = pictures [updateBg bg gs, playerVisual gs, bulletVisual gs, enemyVisual gs]
+
+--Updating background
+updateBg :: Picture -> GameState -> Picture
+updateBg bg gs = translate 0 (-(mod' (100 * (elapsedTime gs)) 1440) + 720) bg
 
 --Visualizing player
 playerVisual :: GameState -> Picture 
