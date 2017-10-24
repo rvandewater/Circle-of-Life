@@ -16,13 +16,15 @@ data GameState = GameState {
                  , level :: Int
                  }
 
-data Bullet = Bullet { position:: Position, speed:: Move, size :: HitBox, damage :: Int}
+data Bullet = Bullet { position:: Position, kind :: BulletType}
+
+data BulletType =  BulletType { speed:: Move, size :: HitBox, damage :: Int}
 
 data HitBox = HitBox { width :: Int, height :: Int}   
 
-data Player = Player { pos :: Position, hitbox :: HitBox }
+data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float }
 
-data Enemy = Enemy { enemypos :: Position, enemyhitbox :: HitBox }
+data Enemy = Enemy { enemypos :: Position, enemyhitbox :: HitBox, enemyfireRate :: Float, enemyBullet :: BulletType, enemyLastFire :: Float }
 
 data Position = Position { xpos :: Int, ypos :: Int }
 
@@ -56,7 +58,10 @@ outOfBounds (Position posx posy) (HitBox width height) =  not validPosition
 -- ********************* CONSTANTS ***************
 initialState :: GameState
 --Starting phase
-initialState = GameState 0 (Player beginPos playerHitBox) (KeysPressed False False False False False) False False [] [Enemy beginPos playerHitBox] 1
+initialState = GameState 0 (Player beginPos playerHitBox 1 standardBullet 0) (KeysPressed False False False False False) False False [] [Enemy beginPos playerHitBox 0 standardBullet 0] 1
+
+standardBullet :: BulletType
+standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage)
 
 --moventSpeed of the player
 movementSpeed :: Int
