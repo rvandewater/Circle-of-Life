@@ -11,26 +11,33 @@ import System.Random
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate@(GameState { paused, bullets, player, keys })=
+step secs gstate@(GameState { paused, player = player@(Player {pos, hitbox, fireRate, bullet, health }), keys })=
     if (not paused) then return $ gstate { 
     elapsedTime = elapsedTime gstate + secs, 
-    player = Player (movementUpdate keys (getposition player)) (gethitbox player),
-    bullets = bulletListUpdate (shootUpdate keys (getposition player) bullets)}
+    player = player {pos =  movementUpdate keys pos, lastFire = fire, health = health - dmg},
+    bullets = bulletshit }
     else return gstate
-      where getposition (Player x _) = x
-            gethitbox (Player _ y ) = y
+     where (bulletlist , fire) = shootUpdate secs gstate
+           (bulletshit , dmg) = bulletListUpdate (gstate {bullets = bulletlist})     
          
+bulletListUpdate :: GameState -> ([Bullet], Float)
+bulletListUpdate (GameState { player = player@(Player {health}), bullets}) =
+  (map bulletUpdate (filter (\thisBull@(Bullet pos (BulletType speed size bulletDamage )) -> not(outOfBounds pos size) && (isHit player thisBull < 1) ) bullets), totaldam )
+    where totaldam = (sum (map (isHit player) bullets  ))
 
-bulletListUpdate :: [Bullet] -> [Bullet]
-bulletListUpdate bullets = map bulletUpdate (filter (\(Bullet pos speed size damage) -> not(outOfBounds pos size)) bullets)
 
 bulletUpdate :: Bullet -> Bullet
-bulletUpdate (Bullet pos speed size damage) = Bullet (updatePos speed pos) speed size damage
+bulletUpdate (Bullet pos (BulletType speed box dmg) ) = (Bullet (updatePos speed pos) (BulletType speed box dmg))
 
-shootUpdate :: KeysPressed -> Position -> [Bullet] -> [Bullet]
-shootUpdate (KeysPressed w a s d sp) playerpos bullets = if sp 
-                                                         then ((Bullet playerpos bulletSpeed bulletHitBox bulletDamage):bullets) 
-                                                         else bullets
+
+
+shootUpdate :: Float -> GameState -> ([Bullet],Float)
+shootUpdate secs gstate@(GameState { elapsedTime, bullets, player = player@(Player {pos = (Position {xpos,ypos}), hitbox, fireRate, bullet, lastFire }), keys = keys@(KeysPressed {space})}) 
+  | canshoot = ((Bullet (Position xpos (ypos + 20)) bullet): (bullets), 0 ) 
+  | otherwise = (bullets, lastFire + secs )
+    where canshoot = space && (lastFire> fireRate)
+ 
+                                                         
 
 -- | Updating Position depending on keys pressed
 movementUpdate :: KeysPressed -> Position -> Position
