@@ -25,7 +25,7 @@ data HitBox = HitBox { width :: Int, height :: Int}
 
 data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float }
 
-data Enemy = Enemy { enemypos :: Position, enemyhitbox :: HitBox, enemyfireRate :: Float, enemyBullet :: BulletType, enemyLastFire :: Float, hitpoints :: Float }
+data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float }
 
 data Position = Position { xpos :: Int, ypos :: Int }
 
@@ -61,6 +61,9 @@ class Ship k where
 instance Ship Player where 
   isHit player@(Player {pos, hitbox, health}) (Bullet bulletpos (BulletType _ size dmg))    | collision (hitbox, pos) (size, bulletpos) = dmg
                                                                                             | otherwise = 0
+instance Ship Enemy where
+  isHit enemy@(Enemy {epos, ehitbox, ehealth}) (Bullet bulletpos (BulletType _ size dmg))    | collision (ehitbox, epos) (size, bulletpos) = dmg
+                                                                                             | otherwise = 0
 
 collision:: (HitBox, Position) -> (HitBox, Position) -> Bool
 collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = (x1  < x2 + w2) &&
@@ -87,7 +90,7 @@ bulletHitBox :: HitBox
 bulletHitBox = HitBox 10 10 
 
 bulletDamage :: Float
-bulletDamage = 5
+bulletDamage = 10
 
 screenx :: Int 
 screenx = 720

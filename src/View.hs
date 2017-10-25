@@ -11,6 +11,10 @@ view :: Picture -> GameState -> IO Picture
 view bg gs = return (viewPure bg gs)
 
 viewPure :: Picture -> GameState -> Picture
+
+--Game over screen
+viewPure _ (GameState _ _ _ _ True _ _ _) = pictures [translate (-200) 0 (color green (Text "Game")), translate (-200) (-200) (color green (Text "Over"))]
+
 --Pause screen
 viewPure _ (GameState _ _ _ True _ _ _ _) = translate (-200) 0 (color green (Text "Paused"))
 
