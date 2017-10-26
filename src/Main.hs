@@ -7,7 +7,7 @@ module Main where
     import Graphics.Gloss.Interface.IO.Game
     
     main :: IO ()
-    main = do   bg <- loadBMP "bg.bmp"
+    main = do   bg <- loadBMP "bg2.bmp"
                 playIO (InWindow "Circle of Life" (screenx, screeny) (0, 0)) -- Or FullScreen
                         black            -- Background color
                         60               -- Frames per second
