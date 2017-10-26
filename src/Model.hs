@@ -36,6 +36,9 @@ data KeysPressed = KeysPressed { w :: Bool, a :: Bool, s :: Bool, d:: Bool, spac
 
 -- ********************* FUNCTIONS ***************
 
+randomSpawn :: Enemy -> Int
+randomSpawn x = undefined
+
 -- | update position
 updatePos ::  Move -> Position -> Position
 updatePos  (Move xmov ymov) (Position xpos ypos) = Position (xpos + xmov) (ypos + ymov)
