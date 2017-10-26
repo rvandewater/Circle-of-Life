@@ -17,13 +17,14 @@ step rg secs gstate@GameState {paused, player = player@Player {pos, hitbox, fire
                                           player      = plr {pos         =  movementUpdate keys pos
                                                                 , lastFire  = fire
                                                                 },
-                                          bullets     =  map bulletUpdate bulletsafterenemies, 
+                                          bullets     =  filter boundcheck (map bulletUpdate bulletsafterenemies), 
                                           lost        = (health <= 0), 
                                           enemies     = map enemyUpdate (filter enemykill enemiesover)}
                   else return gstate
         where (bulletlist , fire)         = shootUpdate secs gstate
               (bulletsover , plr )        = (shipHit bulletlist player) 
               (enemiesover, bulletsafterenemies ) = (shipsHit bulletsover enemies)
+              boundcheck (Bullet pos (BulletType speed box dmg) ) =  (not(outOfBounds pos box)) 
               enemykill (Enemy {ehealth}) = ehealth >= 0
 
 enemyUpdate :: Enemy -> Enemy
@@ -44,7 +45,7 @@ shipHit :: Ship k => [Bullet] -> k -> ([Bullet], k)
 shipHit bullets k 
   =   ( (filter checker bullets),getDamage totaldam k) 
           where totaldam = (sum (mapMaybe (isHit k) bullets  ))
-                checker (thisBull@(Bullet pos (BulletType speed size bulletDamage ))) = (not(outOfBounds pos size) && isNothing(isHit k thisBull))
+                checker (thisBull@(Bullet pos (BulletType speed size bulletDamage ))) = (isNothing(isHit k thisBull))
 
 bulletUpdate :: Bullet -> Bullet
 bulletUpdate (Bullet pos (BulletType speed box dmg) ) = (Bullet (updatePos speed pos) (BulletType speed box dmg))

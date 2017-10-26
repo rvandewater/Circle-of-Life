@@ -15,6 +15,7 @@ data GameState = GameState {
                  , bullets :: [Bullet]
                  , enemies :: [Enemy]
                  , level :: Int
+                 , score :: Int
                  }
 
 data Bullet = Bullet { position:: Position, kind :: BulletType}
@@ -88,7 +89,7 @@ collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = (x1  <
 -- ********************* CONSTANTS ***************
 initialState :: GameState
 --Starting phase
-initialState = GameState 0 (Player beginPos playerHitBox 1 standardBullet 0 100) (KeysPressed False False False False False) False False [] [Enemy beginPos playerHitBox 0 standardBullet 0 10] 1
+initialState = GameState 0 (Player beginPos playerHitBox 1 standardBullet 0 100) (KeysPressed False False False False False) False False [] [Enemy beginPos playerHitBox 0 standardBullet 0 10] 1 0
 
 standardBullet :: BulletType
 standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage)
