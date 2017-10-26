@@ -43,6 +43,14 @@ randomSpawn x = undefined
 updatePos ::  Move -> Position -> Position
 updatePos  (Move xmov ymov) (Position xpos ypos) = Position (xpos + xmov) (ypos + ymov)
 
+-- | update position
+updatePosE ::  Move -> Position -> HitBox -> Position
+updatePosE  (Move xmov ymov) (Position xpos ypos) ehitbox = if validPosition then Position newX newY else Position xpos newY
+      where validPosition :: Bool
+            validPosition = not (outOfBounds (Position newX 0) ehitbox)
+            newX          = xpos + xmov
+            newY          = ypos + ymov
+
 -- | update position, if it is inside the bounds
 updatePosP ::  Move -> Position -> Position
 updatePosP  (Move xmov ymov) (Position xpos ypos) = if validPosition then Position newX newY else Position xpos ypos
@@ -77,7 +85,7 @@ collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = (x1  <
 -- ********************* CONSTANTS ***************
 initialState :: GameState
 --Starting phase
-initialState = GameState 0 (Player beginPos playerHitBox 1 standardBullet 0 100) (KeysPressed False False False False False) False False [] [Enemy beginPos playerHitBox 0 standardBullet 0 100] 1
+initialState = GameState 0 (Player beginPos playerHitBox 1 standardBullet 0 100) (KeysPressed False False False False False) False False [] [] 1
 
 standardBullet :: BulletType
 standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage)
@@ -103,6 +111,9 @@ screeny = 1080
 
 playerHitBox :: HitBox
 playerHitBox = HitBox 20 20
+
+eHitBox :: HitBox
+eHitBox = HitBox 50 50
 
 beginPos :: Position
 beginPos = Position 0 0

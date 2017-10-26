@@ -9,19 +9,28 @@ import Graphics.Gloss.Interface.IO.Game
 import System.Random
 
 -- | Handle one iteration of the game
-step :: Float -> GameState -> IO GameState
-step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRate, bullet, health }, keys, lost}=
+step :: StdGen -> Float -> GameState -> IO GameState
+step rg secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRate, bullet, health }, keys, lost, enemies}=
     if not paused then return $ gstate { 
                                           elapsedTime = elapsedTime gstate + secs, 
-                                          player      = player {pos         =  movementUpdate keys pos
+                                          player      = player {pos         = movementUpdate keys pos
                                                                 , lastFire  = fire
                                                                 , health    = health - dmg},
-                                          bullets     = bulletshit
-                                                        , lost = (health <= 0)}
+                                          bullets     = bulletshit, 
+                                          lost        = (health <= 0),
+                                          enemies     = (map enemyUpdate enemies) ++ (fst (newEnemies rg))}
                   else return gstate
         where (bulletlist , fire)         = shootUpdate secs gstate
               (bulletshit , dmg, enemies) = bulletListUpdate (gstate {bullets = bulletlist})     
-         
+
+enemyUpdate :: Enemy -> Enemy
+enemyUpdate enemy@Enemy{epos, ehitbox} = enemy {epos = updatePosE (Move 0 (-2)) epos ehitbox}
+
+newEnemies :: StdGen -> ([Enemy],StdGen)
+newEnemies rg = if chance then ([(Enemy beginPos eHitBox 0 standardBullet 0 100)],rg) else ([],rg)
+                        where chance = False --random (range 0 10) rg
+
+
 bulletListUpdate :: GameState -> ([Bullet], Float,[Enemy])
 bulletListUpdate GameState { player = player@Player {health}, bullets, enemies} 
   =  (map bulletUpdate (filter checker bullets), totaldam, enemies)
