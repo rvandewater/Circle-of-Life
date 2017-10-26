@@ -13,7 +13,7 @@ module Main where
                 playIO (InWindow "Circle of Life" (screenx, screeny) (0, 0)) -- Or FullScreen
                         black            -- Background color
                         60               -- Frames per second
-                        initialState     -- Initial state
+                        (initialState rg)-- Initial state
                         (view bg)        -- View function
                         input            -- Event function
-                        (step rg)        -- Step function
+                        step             -- Step function

@@ -4,6 +4,7 @@
 module Model where
 
 import Graphics.Gloss
+import System.Random
 
 -- ********************* DATA TYPES ***************
 data GameState = GameState {
@@ -16,7 +17,7 @@ data GameState = GameState {
                  , enemies :: [Enemy]
                  , level :: Int
                  , score :: Int
-                 }
+                 , randomGen :: StdGen}
 
 data Bullet = Bullet { position:: Position, kind :: BulletType}
 
@@ -85,12 +86,18 @@ collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = (x1  <
                                                                           (x1 + w1 > x2) &&
                                                                           (y1 < y2 + h2) &&
                                                                           (y1 + h1 > y2)
-
 -- ********************* CONSTANTS ***************
-initialState :: GameState
+initialState :: StdGen -> GameState
 --Starting phase
-initialState = GameState 0 (Player beginPos playerHitBox 1 standardBullet 0 100) (KeysPressed False False False False False) False False [] [Enemy beginPos playerHitBox 0 standardBullet 0 10] 1 0
-
+initialState = GameState 0 
+                         (Player beginPos playerHitBox 1 standardBullet 0 100) 
+                         (KeysPressed False False False False False) 
+                         False 
+                         False 
+                         [] 
+                         [Enemy enemySpawn playerHitBox 0 standardBullet 0 10]
+                         1
+                         0
 standardBullet :: BulletType
 standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage)
 
@@ -121,3 +128,6 @@ eHitBox = HitBox 50 50
 
 beginPos :: Position
 beginPos = Position 0 0
+
+enemySpawn :: Position
+enemySpawn = Position 0 560

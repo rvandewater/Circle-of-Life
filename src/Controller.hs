@@ -10,29 +10,31 @@ import System.Random
 import Data.Maybe
 
 -- | Handle one iteration of the game
-step :: StdGen -> Float -> GameState -> IO GameState
-step rg secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRate, bullet, health }, keys, lost, bullets, enemies}=
+step :: Float -> GameState -> IO GameState
+step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRate, bullet, health }, keys, lost, bullets, enemies, randomGen}=
     if not paused then return $ gstate { 
                                           elapsedTime = elapsedTime gstate + secs, 
-                                          player      = plr {pos         =  movementUpdate keys pos
-                                                                , lastFire  = fire
-                                                                },
-                                          bullets     =  filter boundcheck (map bulletUpdate bulletsafterenemies), 
+                                          player      = plr {pos = movementUpdate keys pos, lastFire = fire},
+                                          bullets     = filter boundcheck (map bulletUpdate bulletsafterenemies), 
                                           lost        = (health <= 0), 
-                                          enemies     = map enemyUpdate (filter enemykill enemiesover)}
-                  else return gstate
-        where (bulletlist , fire)         = shootUpdate secs gstate
-              (bulletsover , plr )        = (shipHit bulletlist player) 
-              (enemiesover, bulletsafterenemies ) = (shipsHit bulletsover enemies)
-              boundcheck (Bullet pos (BulletType speed box dmg) ) =  (not(outOfBounds pos box)) 
-              enemykill (Enemy {ehealth}) = ehealth >= 0
+                                          enemies     = map enemyUpdate (filter enemykill enemiesover) ++ newEns,
+                                          randomGen   = nrg}
+                  else return   gstate
+        where (bulletlist, fire)                                  = shootUpdate secs gstate
+              (bulletsover, plr )                                 = shipHit bulletlist player
+              (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemies
+              boundcheck (Bullet pos (BulletType speed box dmg) ) = not (outOfBounds pos box)
+              enemykill Enemy{ehealth}                            = ehealth >= 0
+              (newEns, nrg)                                       = newEnemies gstate
 
 enemyUpdate :: Enemy -> Enemy
 enemyUpdate enemy@Enemy{epos, ehitbox} = enemy {epos = updatePosE (Move 0 (-2)) epos ehitbox}
 
-newEnemies :: StdGen -> ([Enemy],StdGen)
-newEnemies rg = if chance then ([(Enemy beginPos eHitBox 0 standardBullet 0 100)],rg) else ([],rg)
-                        where chance = False --random (range 0 10) rg
+newEnemies :: GameState -> ([Enemy],StdGen)
+newEnemies gs@GameState{randomGen} = if number == 0 then ([Enemy spawn eHitBox 0 standardBullet 0 5],nnrg) else ([],nnrg)
+                            where (number, nrg)     = randomR (0, 100 :: Int) randomGen
+                                  (location, nnrg)  = randomR (-300, 300 :: Int) nrg
+                                  spawn             = Position location 550
 
 shipsHit :: Ship k => [Bullet] -> [k] -> ([k],[Bullet] )
 shipsHit bullets ships = foldl oneship ( [], bullets) ships
