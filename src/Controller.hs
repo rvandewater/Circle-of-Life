@@ -7,26 +7,36 @@ import Model
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import System.Random
+import Data.Maybe
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRate, bullet, health }, keys, lost}=
+step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRate, bullet, health }, keys, lost, bullets, enemies}=
     if not paused then return $ gstate { 
                                           elapsedTime = elapsedTime gstate + secs, 
-                                          player      = player {pos         =  movementUpdate keys pos
+                                          player      = plr {pos         =  movementUpdate keys pos
                                                                 , lastFire  = fire
-                                                                , health    = health - dmg},
-                                          bullets     = bulletshit
-                                                        , lost = (health <= 0)}
+                                                                },
+                                          bullets     =  map bulletUpdate bulletsafterenemies
+                                                        , lost = (health <= 0), enemies = filter enemykill enemiesover}
                   else return gstate
         where (bulletlist , fire)         = shootUpdate secs gstate
-              (bulletshit , dmg, enemies) = bulletListUpdate (gstate {bullets = bulletlist})     
-         
-bulletListUpdate :: GameState -> ([Bullet], Float,[Enemy])
-bulletListUpdate GameState { player = player@Player {health}, bullets, enemies} 
-  =  (map bulletUpdate (filter checker bullets), totaldam, enemies)
-          where totaldam = (sum (map (isHit player) bullets  ))
-                checker (thisBull@(Bullet pos (BulletType speed size bulletDamage ))) = not(outOfBounds pos size) && (isHit player thisBull < 1)
+              (bulletsover , plr )        = (shipHit bulletlist player) 
+              (enemiesover, bulletsafterenemies ) = (shipsHit bulletsover enemies)
+              enemykill (Enemy {ehealth}) = ehealth >= 0
+
+shipsHit :: Ship k => [Bullet] -> [k] -> ([k],[Bullet] )
+shipsHit bullets ships = foldl oneship ( [], bullets) ships
+                                  where
+                                    oneship :: Ship k => ([k],[Bullet]) -> k -> ([k],[Bullet])
+                                    oneship (shiplist, bullets') ship = (ship':shiplist, bull) 
+                                        where (bull, ship')= shipHit  bullets' ship 
+                                      
+shipHit :: Ship k => [Bullet] -> k -> ([Bullet], k)
+shipHit bullets k 
+  =   ( (filter checker bullets),getDamage totaldam k) 
+          where totaldam = (sum (mapMaybe (isHit k) bullets  ))
+                checker (thisBull@(Bullet pos (BulletType speed size bulletDamage ))) = (not(outOfBounds pos size) && isNothing(isHit k thisBull))
 
 bulletUpdate :: Bullet -> Bullet
 bulletUpdate (Bullet pos (BulletType speed box dmg) ) = (Bullet (updatePos speed pos) (BulletType speed box dmg))

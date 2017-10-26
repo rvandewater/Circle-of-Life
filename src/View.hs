@@ -19,7 +19,7 @@ viewPure _ (GameState _ _ _ _ True _ _ _) = pictures [translate (-200) 0 (color 
 viewPure _ (GameState _ _ _ True _ _ _ _) = translate (-200) 0 (color green (Text "Paused"))
 
 --Default game screen
-viewPure bg gstate = pictures [updateBg bg gstate, playerVisual gstate, bulletVisual gstate, enemyVisual gstate,  translate 170 550 (color red (text (show (health(player gstate)))))]
+viewPure bg gstate = pictures [updateBg bg gstate, playerVisual gstate, bulletVisual gstate, enemyVisual gstate,   (color red (text (show (health(player gstate)))))]
 
 --Updating background
 updateBg :: Picture -> GameState -> Picture

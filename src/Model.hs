@@ -59,14 +59,17 @@ outOfBounds (Position posx posy) (HitBox width height) =  not validPosition
                         && posy + posy <  screeny - height
                         && posy + posy > -screeny + height
 class Ship k where 
-  isHit :: k -> Bullet -> Float
+  isHit :: k -> Bullet -> Maybe Float
+  getDamage :: Float -> k -> k
 
 instance Ship Player where 
-  isHit player@(Player {pos, hitbox, health}) (Bullet bulletpos (BulletType _ size dmg))    | collision (hitbox, pos) (size, bulletpos) = dmg
-                                                                                            | otherwise = 0
+  isHit player@(Player {pos, hitbox, health}) (Bullet bulletpos (BulletType _ size dmg))    | collision (hitbox, pos) (size, bulletpos) = Just dmg
+                                                                                            | otherwise = Nothing
+  getDamage dmg player@(Player { health}) = player {health = health - dmg}
 instance Ship Enemy where
-  isHit enemy@(Enemy {epos, ehitbox, ehealth}) (Bullet bulletpos (BulletType _ size dmg))    | collision (ehitbox, epos) (size, bulletpos) = dmg
-                                                                                             | otherwise = 0
+  isHit enemy@(Enemy {epos, ehitbox, ehealth}) (Bullet bulletpos (BulletType _ size dmg))    | collision (ehitbox, epos) (size, bulletpos) = Just dmg
+                                                                                             | otherwise = Nothing
+  getDamage dmg enemy@(Enemy { ehealth}) = enemy {ehealth = ehealth - dmg}
 
 collision:: (HitBox, Position) -> (HitBox, Position) -> Bool
 collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = (x1  < x2 + w2) &&
@@ -77,7 +80,7 @@ collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = (x1  <
 -- ********************* CONSTANTS ***************
 initialState :: GameState
 --Starting phase
-initialState = GameState 0 (Player beginPos playerHitBox 1 standardBullet 0 100) (KeysPressed False False False False False) False False [] [Enemy beginPos playerHitBox 0 standardBullet 0 100] 1
+initialState = GameState 0 (Player beginPos playerHitBox 1 standardBullet 0 100) (KeysPressed False False False False False) False False [] [Enemy beginPos playerHitBox 0 standardBullet 0 10] 1
 
 standardBullet :: BulletType
 standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage)
