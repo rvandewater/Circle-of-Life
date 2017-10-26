@@ -93,10 +93,10 @@ bulletDamage :: Float
 bulletDamage = 10
 
 screenx :: Int 
-screenx = 720
+screenx = 608
 
 screeny :: Int
-screeny = 1280
+screeny = 1080
 
 playerHitBox :: HitBox
 playerHitBox = HitBox 20 20
