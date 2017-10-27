@@ -13,11 +13,10 @@ view bg gs = return (viewPure bg gs)
 viewPure :: Picture -> GameState -> Picture
 viewPure bg gstate@GameState{lost, paused}  | lost      = pictures [translate (-200) 0 (color green (Text "Game")), translate (-200) (-200) (color green (Text "Over"))]
                                             | paused    = translate (-200) 0 (color green (Text "Paused"))
-                                            | otherwise = pictures [updateBg bg gstate, playerVisual gstate, bulletVisual gstate, enemyVisual gstate,   (color red (text (show (health(player gstate))))), 
-                                             translate 200 200 (color red (text (show (score gstate)))) ]
+                                            | otherwise = pictures [updateBg bg gstate, playerVisual gstate, bulletVisual gstate, enemyVisual gstate, informationVisual gstate    ]
 --Updating background
 updateBg :: Picture -> GameState -> Picture
-updateBg bg gs = translate 0 (-(mod' (100 * (elapsedTime gs)) 1440) + 720) bg
+updateBg bg gs = scale informationScaler 1 (translate 0 (-(mod' (100 * (elapsedTime gs)) 1440) + 720) bg)
 
 --Visualizing player
 playerVisual :: GameState -> Picture 
@@ -38,5 +37,12 @@ bulletsDraw (Bullet (Position xpos ypos) _ ) = translate (fromIntegral xpos) (fr
 
 bulletPic :: Picture
 bulletPic = color red (thickCircle 2 5)
+
+informationVisual ::  GameState -> Picture
+informationVisual gstate = pictures[ (translate (-  (((fromIntegral informationBar)/2) + fromIntegral screenx/2)) 0 (rotate 90(scale 0.5 0.5(color red (text (show (health(player gstate)))))))), 
+     (translate (fromIntegral screenx/2) 0 (rotate 90( scale 0.5 0.5 (color red (text (show (score gstate)))))))]
+
+
+
 
 

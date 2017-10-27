@@ -139,3 +139,9 @@ enemySpawn = Position 0 560
 
 collDamage :: Float
 collDamage = 10
+
+informationBar :: Int
+informationBar = 200
+
+informationScaler :: Float
+informationScaler =  (fromIntegral screenx) / ( ( fromIntegral screenx) + ((fromIntegral informationBar) / 2))
