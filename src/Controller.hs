@@ -52,8 +52,10 @@ enemyUpdate gs@GameState{randomGen} enemies | isJust newEn = ((fromJust newEn) :
 aiMove :: Enemy -> GameState -> Move
 aiMove Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), eai, espeed} GameState{player = Player{pos = (Position px py)}, bullets}   
     | eai == 0  = Move (toPlayer ex px) (toPlayer ey py)  --trail
-    | eai == 1  = Move (toPlayer ex px) (-espeed)         --block
+    | eai == 1  = Move (toPlayer ex px) (-espeed)         --trail on x
     | eai == 2  = Move dodgeBullet      (-espeed)         --dodge
+    | eai == 3  = if dodgeBullet == 0 then Move (toPlayer ex px) (toPlayer ey py)  --dodge and trail
+                                      else Move dodgeBullet      (-espeed)
     | otherwise = Move 0                (-espeed)         --stationary
 
   where toPlayer ex px  | ex < px - 1 = espeed
@@ -64,8 +66,8 @@ aiMove Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), eai, espe
                         | danger < 0 = -espeed
                         | otherwise  = 0
         danger = sum (map zone bullets)
-        zone bullet@Bullet{position = (Position x y)} | x <=  ex && x > ex - width - 20 = espeed
-                                                      | x >   ex && x < ex + width + 20 = (-espeed)
+        zone bullet@Bullet{position = (Position x y)} | y < ey && x <=  ex -1 && x > ex - width - 20 = espeed
+                                                      | y < ey && x >   ex +1 && x < ex + width + 20 = (-espeed)
                                                       | otherwise = 0
 
 newEnemy :: StdGen -> (Maybe Enemy,StdGen)
