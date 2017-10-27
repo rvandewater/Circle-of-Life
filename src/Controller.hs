@@ -11,21 +11,30 @@ import Data.Maybe
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRate, bullet, health }, keys, lost, bullets, enemies, randomGen}=
+step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRate, bullet, health }, keys, lost, bullets, enemies, randomGen, score}=
     if not paused then return $ gstate { 
                                           elapsedTime = elapsedTime gstate + secs, 
                                           player      = plr {pos = movementUpdate keys pos, lastFire = fire},
                                           bullets     = filter boundcheck (map bulletUpdate bulletsafterenemies), 
                                           lost        = (health <= 0), 
-                                          enemies     = map enemyUpdate (filter enemykill enemiesover) ++ newEns,
-                                          randomGen   = nrg}
+                                          enemies     = map enemyUpdate (mapMaybe enemyKill enemiesover) ++ newEns,
+                                          randomGen   = nrg,
+                                          score       = score + killscore
+                                          }
                   else return   gstate
         where (bulletlist, fire)                                  = shootUpdate secs gstate
               (bulletsover, plr )                                 = shipHit bulletlist player
               (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemies
               boundcheck (Bullet pos (BulletType speed box dmg) ) = not (outOfBounds pos box)
-              enemykill Enemy{ehealth}                            = ehealth >= 0
               (newEns, nrg)                                       = newEnemies gstate
+              killscore = sum (map enemyScore enemiesover)
+
+enemyKill :: Enemy -> Maybe Enemy
+enemyKill enemy@Enemy{ehealth}                            | ehealth >= 0 = Just enemy
+                                                          | otherwise = Nothing
+enemyScore :: Enemy -> Int
+enemyScore enemy@Enemy{ehealth}                            | ehealth >= 0 = 0
+                                                          | otherwise = 10
 
 enemyUpdate :: Enemy -> Enemy
 enemyUpdate enemy@Enemy{epos, ehitbox} = enemy {epos = updatePosE (Move 0 (-2)) epos ehitbox}
