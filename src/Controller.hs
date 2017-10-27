@@ -17,7 +17,7 @@ step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRat
                                           player      = plr {pos = movementUpdate keys pos, lastFire = fire},
                                           bullets     = filter boundcheck (map bulletUpdate bulletsafterenemies), 
                                           lost        = (health <= 0), 
-                                          enemies     = map (enemyUpdate player) (mapMaybe enemyKill enemiesover) ++ newEns,
+                                          enemies     = updatedenemies,
                                           randomGen   = nrg,
                                           score       = score + killscore
                                           }
@@ -26,8 +26,8 @@ step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRat
               (bulletsover, plr )                                 = shipHit bulletlist player
               (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemies
               boundcheck (Bullet pos (BulletType speed box dmg) ) = not (outOfBounds pos box)
-              (newEns, nrg)                                       = newEnemies gstate
-              killscore = sum (map enemyScore enemiesover)
+              killscore                                           = sum (map enemyScore enemiesover)
+              (updatedenemies, nrg)                               = enemyUpdate gstate (mapMaybe enemyKill enemiesover)
 
 enemyKill :: Enemy -> Maybe Enemy
 enemyKill enemy@Enemy{ehealth}                            | ehealth >= 0 = Just enemy
@@ -36,18 +36,30 @@ enemyScore :: Enemy -> Int
 enemyScore enemy@Enemy{ehealth}                           | ehealth >= 0 = 0
                                                           | otherwise = 10
 
-enemyUpdate :: Player -> Enemy -> Enemy
-enemyUpdate Player{pos} enemy@Enemy{epos, ehitbox, eai} | eai == 1  = enemy {epos = updatePosE (Move 0 (-3)) epos ehitbox}
-                                                        | otherwise = enemy {epos = updatePosE (Move 0 (-2)) epos ehitbox}
-newEnemies :: GameState -> ([Enemy],StdGen)
-newEnemies gs@GameState{randomGen} = if number == 0 then ([Enemy spawn eHitBox 0 standardBullet 0 5 (color red (rectangleSolid 50 50)) 1],nnrg) else ([],nnrg)
-                            where (number, nrg)     = randomR (0, 100 :: Int) randomGen
-                                  (location, nnrg)  = randomR (-300, 300 :: Int) nrg
-                                  spawn             = Position location 550
+enemyUpdate :: GameState -> [Enemy] -> ([Enemy],StdGen)
+enemyUpdate gs@GameState{randomGen} enemies | isJust newEn = ((fromJust newEn) : (map positionUpdate enemies),rg)
+                                            | otherwise    = (map positionUpdate enemies,rg)
+                                      where positionUpdate en@Enemy{epos, ehitbox}  = en{epos = updatePosE aiMove epos ehitbox}
+                                            aiMove            = Move 0 (-2)
+                                            (newEn, rg)       = newEnemy randomGen
+
+newEnemy :: StdGen -> (Maybe Enemy,StdGen)
+newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 550},rg3)
+            | otherwise   = (Nothing,rg3)
+            where (number,    rg1)  = randomR (0,     100 :: Int) rg            --maybe a new enemy spawns
+                  (location,  rg2)  = randomR (-290,  290 :: Int) rg1           --the new enemy location is random
+                  (ai,        rg3)  = randomR (0,       4 :: Int) rg2           --the new enemy has a random ai assigned                            
+
+selectEnemy :: [Enemy]
+selectEnemy = [Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color blue    (rectangleSolid 50 50)) 0
+              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color white   (rectangleSolid 50 50)) 1
+              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color yellow  (rectangleSolid 50 50)) 2
+              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color red     (rectangleSolid 50 50)) 3
+              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color black   (rectangleSolid 50 50)) 4]
+
 
 shipsHit :: Ship k => [Bullet] -> [k] -> ([k],[Bullet] )
-shipsHit bullets ships = foldl oneship ( [], bullets) ships
-                                  where
+shipsHit bullets = foldl oneship ( [], bullets)                                  where
                                     oneship :: Ship k => ([k],[Bullet]) -> k -> ([k],[Bullet])
                                     oneship (shiplist, bullets') ship = (ship':shiplist, bull) 
                                         where (bull, ship')= shipHit  bullets' ship 
