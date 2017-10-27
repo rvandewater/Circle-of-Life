@@ -14,7 +14,7 @@ step :: Float -> GameState -> IO GameState
 step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRate, bullet, health }, keys, lost, bullets, enemies, randomGen, score}=
     if not paused then return $ gstate { 
                                           elapsedTime = elapsedTime gstate + secs, 
-                                          player      = plr {pos = movementUpdate keys pos, lastFire = fire},
+                                          player      = plr {pos = movementUpdate keys pos, lastFire = fire, health = health - plrcolldamage},
                                           bullets     = filter boundcheck (map bulletUpdate bulletsafterenemies), 
                                           lost        = (health <= 0), 
                                           enemies     = updatedenemies,
@@ -27,7 +27,10 @@ step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRat
               (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemies
               boundcheck (Bullet pos (BulletType speed box dmg) ) = not (outOfBounds pos box)
               killscore                                           = sum (map enemyScore enemiesover)
-              (updatedenemies, nrg)                               = enemyUpdate gstate (mapMaybe enemyKill enemiesover)
+              (updatedenemies, nrg)                               = enemyUpdate gstate (mapMaybe enemyKill enemycollover)
+              enemycollover                                       = map snd collisioncheck
+              plrcolldamage                                       = sum (map fst collisioncheck)
+              collisioncheck                                      = (map (enemyColl player) enemiesover)
 
 enemyKill :: Enemy -> Maybe Enemy
 enemyKill enemy@Enemy{ehealth}                            | ehealth >= 0 = Just enemy
