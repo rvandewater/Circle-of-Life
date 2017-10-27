@@ -33,10 +33,10 @@ enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _  epic _ _ _) = transla
 bulletVisual :: GameState -> Picture 
 bulletVisual GameState {bullets} = pictures (map bulletsDraw bullets)
 
-bulletsDraw (Bullet (Position xpos ypos) _ ) = translate (fromIntegral xpos) (fromIntegral ypos) bulletPic
+bulletsDraw (Bullet (Position xpos ypos) (BulletType {bulletpic}) secs) = translate (fromIntegral xpos) (fromIntegral ypos) (pictures [ color white (line [ (fromIntegral xpos, fromIntegral ypos),
+    ((fromIntegral xpos), (fromIntegral ypos - secs*10))]),bulletpic])
 
-bulletPic :: Picture
-bulletPic = color red (thickCircle 2 5)
+
 
 informationVisual ::  GameState -> Picture
 informationVisual gstate = pictures[ (translate (-  (((fromIntegral informationBar)/2) + fromIntegral screenx/2)) 0 (rotate 90(scale 0.5 0.5(color red (text (show (health(player gstate)))))))), 

@@ -15,7 +15,7 @@ step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRat
     if not paused then return $ gstate { 
                                           elapsedTime = elapsedTime gstate + secs, 
                                           player      = plr {pos = movementUpdate keys pos, lastFire = fire, health = health - plrcolldamage},
-                                          bullets     = filter boundcheck (map bulletUpdate bulletsafterenemies), 
+                                          bullets     = map bulletAniUp (filter boundcheck (map bulletUpdate bulletsafterenemies)), 
                                           lost        = (health <= 0), 
                                           enemies     = updatedenemies,
                                           randomGen   = nrg,
@@ -25,12 +25,14 @@ step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRat
         where (bulletlist, fire)                                  = shootUpdate secs gstate
               (bulletsover, plr )                                 = shipHit bulletlist player
               (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemies
-              boundcheck (Bullet pos (BulletType speed box dmg) ) = not (outOfBounds pos box)
+              boundcheck (Bullet pos (BulletType speed box dmg _) _ ) = not (outOfBounds pos box)
               killscore                                           = sum (map enemyScore enemiesover)
               (updatedenemies, nrg)                               = enemyUpdate gstate (mapMaybe enemyKill enemycollover)
               enemycollover                                       = map snd collisioncheck
               plrcolldamage                                       = sum (map fst collisioncheck)
               collisioncheck                                      = (map (enemyColl player) enemiesover)
+              bulletAniUp bullet@Bullet{frame}                    | frame < 2 = bullet {frame = frame + secs}
+                                                                  | otherwise = bullet {frame = 0}
 
 enemyKill :: Enemy -> Maybe Enemy
 enemyKill enemy@Enemy{ehealth}                            | ehealth >= 0 = Just enemy
@@ -79,14 +81,14 @@ shipHit :: Ship k => [Bullet] -> k -> ([Bullet], k)
 shipHit bullets k 
   =   ( (filter checker bullets),getDamage totaldam k) 
           where totaldam = (sum (mapMaybe (isHit k) bullets  ))
-                checker (thisBull@(Bullet pos (BulletType speed size bulletDamage ))) = (isNothing(isHit k thisBull))
+                checker (thisBull@(Bullet pos (BulletType speed size bulletDamage _ ) _)) = (isNothing(isHit k thisBull))
 
 bulletUpdate :: Bullet -> Bullet
-bulletUpdate (Bullet pos (BulletType speed box dmg) ) = (Bullet (updatePos speed pos) (BulletType speed box dmg))
+bulletUpdate (Bullet pos (BulletType speed box dmg pic) up) = (Bullet (updatePos speed pos) (BulletType speed box dmg pic) up)
 
 shootUpdate :: Float -> GameState -> ([Bullet],Float)
 shootUpdate secs gstate@GameState { elapsedTime, bullets, player = player@Player {pos = Position {xpos,ypos}, hitbox, fireRate, bullet, lastFire }, keys = keys@KeysPressed {space}} 
-  | canshoot = ((Bullet (Position xpos (ypos + 20)) bullet): bullets, 0 ) 
+  | canshoot = ((Bullet (Position xpos (ypos + 20)) bullet 0): bullets, 0 ) 
   | otherwise = (bullets, lastFire + secs )
     where canshoot = space && (lastFire> fireRate)
  

@@ -19,9 +19,9 @@ data GameState = GameState {
                  , score :: Int
                  , randomGen :: StdGen}
 
-data Bullet = Bullet { position:: Position, kind :: BulletType}
+data Bullet = Bullet { position:: Position, kind :: BulletType, frame :: Float}
 
-data BulletType =  BulletType { speed:: Move, size :: HitBox, damage :: Float}
+data BulletType =  BulletType { speed:: Move, size :: HitBox, damage :: Float, bulletpic :: Picture}
 
 data HitBox = HitBox { width :: Int, height :: Int}   
 
@@ -73,11 +73,11 @@ class Ship k where
   getDamage :: Float -> k -> k
 
 instance Ship Player where 
-  isHit player@(Player {pos, hitbox, health}) (Bullet bulletpos (BulletType _ size dmg))    | collision (hitbox, pos) (size, bulletpos) = Just dmg
+  isHit player@(Player {pos, hitbox, health}) (Bullet bulletpos (BulletType _ size dmg _) _)    | collision (hitbox, pos) (size, bulletpos) = Just dmg
                                                                                             | otherwise = Nothing
   getDamage dmg player@(Player { health}) = player {health = health - dmg}
 instance Ship Enemy where
-  isHit enemy@(Enemy {epos, ehitbox, ehealth}) (Bullet bulletpos (BulletType _ size dmg))    | collision (ehitbox, epos) (size, bulletpos) = Just dmg
+  isHit enemy@(Enemy {epos, ehitbox, ehealth}) (Bullet bulletpos (BulletType _ size dmg _) _)    | collision (ehitbox, epos) (size, bulletpos) = Just dmg
                                                                                              | otherwise = Nothing
   getDamage dmg enemy@(Enemy { ehealth}) = enemy {ehealth = ehealth - dmg}
 enemyColl :: Player -> Enemy -> (Float, Enemy)
@@ -104,7 +104,7 @@ initialState = GameState 0
                          1
                          0
 standardBullet :: BulletType
-standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage)
+standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage (color red (thickCircle 20 10)) )
 
 --moventSpeed of the player
 movementSpeed :: Int
