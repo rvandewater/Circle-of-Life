@@ -104,7 +104,7 @@ initialState = GameState 0
                          1
                          0
 standardBullet :: BulletType
-standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage (color red (thickCircle 20 10)) )
+standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage (color red (circleSolid 5)) )
 
 --moventSpeed of the player
 movementSpeed :: Int
