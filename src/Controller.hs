@@ -40,7 +40,7 @@ enemyUpdate :: Enemy -> Enemy
 enemyUpdate enemy@Enemy{epos, ehitbox} = enemy {epos = updatePosE (Move 0 (-2)) epos ehitbox}
 
 newEnemies :: GameState -> ([Enemy],StdGen)
-newEnemies gs@GameState{randomGen} = if number == 0 then ([Enemy spawn eHitBox 0 standardBullet 0 5],nnrg) else ([],nnrg)
+newEnemies gs@GameState{randomGen} = if number == 0 then ([Enemy spawn eHitBox 0 standardBullet 0 5 (color red (rectangleSolid 50 50))],nnrg) else ([],nnrg)
                             where (number, nrg)     = randomR (0, 100 :: Int) randomGen
                                   (location, nnrg)  = randomR (-300, 300 :: Int) nrg
                                   spawn             = Position location 550

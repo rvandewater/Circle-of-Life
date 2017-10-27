@@ -27,7 +27,7 @@ data HitBox = HitBox { width :: Int, height :: Int}
 
 data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float }
 
-data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float }
+data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float , epic :: Picture }
 
 data Position = Position { xpos :: Int, ypos :: Int }
 
@@ -95,7 +95,7 @@ initialState = GameState 0
                          False 
                          False 
                          [] 
-                         [Enemy enemySpawn playerHitBox 0 standardBullet 0 10]
+                         [Enemy enemySpawn playerHitBox 0 standardBullet 0 10 ( color red (rectangleSolid 50 50))]
                          1
                          0
 standardBullet :: BulletType

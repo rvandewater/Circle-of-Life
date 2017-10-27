@@ -13,7 +13,8 @@ view bg gs = return (viewPure bg gs)
 viewPure :: Picture -> GameState -> Picture
 viewPure bg gstate@GameState{lost, paused}  | lost      = pictures [translate (-200) 0 (color green (Text "Game")), translate (-200) (-200) (color green (Text "Over"))]
                                             | paused    = translate (-200) 0 (color green (Text "Paused"))
-                                            | otherwise = pictures [updateBg bg gstate, playerVisual gstate, bulletVisual gstate, enemyVisual gstate,   (color red (text (show (health(player gstate)))))]
+                                            | otherwise = pictures [updateBg bg gstate, playerVisual gstate, bulletVisual gstate, enemyVisual gstate,   (color red (text (show (health(player gstate))))), 
+                                             translate 200 200 (color red (text (show (score gstate)))) ]
 --Updating background
 updateBg :: Picture -> GameState -> Picture
 updateBg bg gs = translate 0 (-(mod' (100 * (elapsedTime gs)) 1440) + 720) bg
@@ -27,7 +28,7 @@ enemyVisual :: GameState -> Picture
 enemyVisual GameState{enemies} = pictures (map enemyPic enemies)
 
 enemyPic :: Enemy -> Picture
-enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _) = translate (fromIntegral xpos) (fromIntegral ypos) (color red (rectangleSolid 50 50))
+enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _  epic) = translate (fromIntegral xpos) (fromIntegral ypos) (epic)
 
 --Visualizing bullets
 bulletVisual :: GameState -> Picture 
