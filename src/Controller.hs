@@ -8,6 +8,7 @@ import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import System.Random
 import Data.Maybe
+import Data.List
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
@@ -49,12 +50,23 @@ enemyUpdate gs@GameState{randomGen} enemies | isJust newEn = ((fromJust newEn) :
 
 
 aiMove :: Enemy -> GameState -> Move
-aiMove Enemy{epos = (Position ex ey), eai, espeed} GameState{player = Player{pos = (Position px py)}}   | eai == 0  = Move (toPlayer ex px) (toPlayer ey py)  --trail
-                                                                                                        | eai == 1  = Move (toPlayer ex px) (-espeed)         --block
-                                                                                                        | otherwise = Move 0 (-espeed)
-                    where toPlayer ex px  | ex < px - 1 = espeed
-                                          | ex > px + 1 = -espeed - espeed
-                                          | otherwise = 0
+aiMove Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), eai, espeed} GameState{player = Player{pos = (Position px py)}, bullets}   
+    | eai == 0  = Move (toPlayer ex px) (toPlayer ey py)  --trail
+    | eai == 1  = Move (toPlayer ex px) (-espeed)         --block
+    | eai == 2  = Move dodgeBullet      (-espeed)         --dodge
+    | otherwise = Move 0                (-espeed)         --stationary
+
+  where toPlayer ex px  | ex < px - 1 = espeed
+                        | ex > px + 1 = -espeed - espeed
+                        | otherwise = 0
+
+        dodgeBullet     | danger > 0 = espeed
+                        | danger < 0 = -espeed
+                        | otherwise  = 0
+        danger = sum (map zone bullets)
+        zone bullet@Bullet{position = (Position x y)} | x <=  ex && x > ex - width - 20 = espeed
+                                                      | x >   ex && x < ex + width + 20 = (-espeed)
+                                                      | otherwise = 0
 
 newEnemy :: StdGen -> (Maybe Enemy,StdGen)
 newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 550},rg3)
