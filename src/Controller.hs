@@ -27,6 +27,7 @@ step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRat
               (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemies
               boundcheck (Bullet pos (BulletType speed box dmg) ) = not (outOfBounds pos box)
               (newEns, nrg)                                       = newEnemies gstate
+              
               killscore = sum (map enemyScore enemiesover)
 
 enemyKill :: Enemy -> Maybe Enemy
