@@ -27,7 +27,7 @@ enemyVisual :: GameState -> Picture
 enemyVisual GameState{enemies} = pictures (map enemyPic enemies)
 
 enemyPic :: Enemy -> Picture
-enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _  epic _) = translate (fromIntegral xpos) (fromIntegral ypos) (epic)
+enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _  epic _ _ _) = translate (fromIntegral xpos) (fromIntegral ypos) (epic)
 
 --Visualizing bullets
 bulletVisual :: GameState -> Picture 

@@ -36,29 +36,37 @@ enemyKill :: Enemy -> Maybe Enemy
 enemyKill enemy@Enemy{ehealth}                            | ehealth >= 0 = Just enemy
                                                           | otherwise = Nothing
 enemyScore :: Enemy -> Int
-enemyScore enemy@Enemy{ehealth}                           | ehealth >= 0 = 0
-                                                          | otherwise = 10
+enemyScore enemy@Enemy{ehealth, killpoints}               | ehealth >= 0 = 0
+                                                          | otherwise = killpoints
 
 enemyUpdate :: GameState -> [Enemy] -> ([Enemy],StdGen)
 enemyUpdate gs@GameState{randomGen} enemies | isJust newEn = ((fromJust newEn) : (map positionUpdate enemies),rg)
                                             | otherwise    = (map positionUpdate enemies,rg)
-                                      where positionUpdate en@Enemy{epos, ehitbox}  = en{epos = updatePosE aiMove epos ehitbox}
-                                            aiMove            = Move 0 (-2)
-                                            (newEn, rg)       = newEnemy randomGen
+                                      where positionUpdate en@Enemy{epos, ehitbox}  = en{epos = updatePosE (aiMove en gs) epos ehitbox}
+                                            (newEn, rg)    = newEnemy randomGen
+
+
+aiMove :: Enemy -> GameState -> Move
+aiMove Enemy{epos = (Position ex ey), eai, espeed} GameState{player = Player{pos = (Position px py)}}   | eai == 0  = Move (toPlayer ex px) (toPlayer ey py)  --trail
+                                                                                                        | eai == 1  = Move (toPlayer ex px) (-espeed)         --block
+                                                                                                        | otherwise = Move 0 (-espeed)
+                    where toPlayer ex px  | ex < px - 1 = espeed
+                                          | ex > px + 1 = -espeed - espeed
+                                          | otherwise = 0
 
 newEnemy :: StdGen -> (Maybe Enemy,StdGen)
 newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 550},rg3)
             | otherwise   = (Nothing,rg3)
             where (number,    rg1)  = randomR (0,     100 :: Int) rg            --maybe a new enemy spawns
-                  (location,  rg2)  = randomR (-290,  290 :: Int) rg1           --the new enemy location is random
+                  (location,  rg2)  = randomR (-275,  275 :: Int) rg1           --the new enemy location is random
                   (ai,        rg3)  = randomR (0,       4 :: Int) rg2           --the new enemy has a random ai assigned                            
 
 selectEnemy :: [Enemy]
-selectEnemy = [Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color blue    (rectangleSolid 50 50)) 0
-              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color white   (rectangleSolid 50 50)) 1
-              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color yellow  (rectangleSolid 50 50)) 2
-              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color red     (rectangleSolid 50 50)) 3
-              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color black   (rectangleSolid 50 50)) 4]
+selectEnemy = [Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color blue    (rectangleSolid 50 50)) 0 2 100
+              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color white   (rectangleSolid 50 50)) 1 2 50
+              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color yellow  (rectangleSolid 50 50)) 2 2 10
+              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color red     (rectangleSolid 50 50)) 3 2 10
+              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color black   (rectangleSolid 50 50)) 4 2 10]
 
 
 shipsHit :: Ship k => [Bullet] -> [k] -> ([k],[Bullet] )
