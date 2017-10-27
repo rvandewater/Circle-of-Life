@@ -95,7 +95,7 @@ collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = (x1  <
 initialState :: StdGen -> GameState
 --Starting phase
 initialState = GameState 0 
-                         (Player beginPos playerHitBox 0.1 standardBullet 0 100) 
+                         (Player beginPos playerHitBox 0.5 standardBullet 0 100) 
                          (KeysPressed False False False False False) 
                          False 
                          False 

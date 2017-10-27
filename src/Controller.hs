@@ -51,26 +51,29 @@ enemyUpdate gs@GameState{randomGen} enemies | isJust newEn = ((fromJust newEn) :
 
 aiMove :: Enemy -> GameState -> Move
 aiMove Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), eai, espeed} GameState{player = Player{pos = (Position px py)}, bullets}   
-    | eai == 0  = Move (toPlayer ex px) (toPlayer ey py)  --trail
-    | eai == 1  = Move (toPlayer ex px) (-espeed)         --trail on x
-    | eai == 2  = Move dodgeBullet      (-espeed)         --dodge
-    | eai == 3  = if dodgeBullet == 0 then Move (toPlayer ex px) (toPlayer ey py)  --dodge and trail
-                                      else Move dodgeBullet      (-espeed)
+    | eai == 0  = Move (toPlayer ex px) (toPlayer ey py)                            --trail
+    | eai == 1  = Move (toPlayer ex px) (-espeed)                                   --trail on x
+    | eai == 2  = Move dodgeBullet      (-espeed)                                   --dodge
+    | eai == 3  
+        = if dodgeBullet == 0 
+            then  Move (toPlayer ex px) (toPlayer ey py)                            --dodge and trail
+            else  Move dodgeBullet      (-espeed)
     | otherwise = Move 0                (-espeed)         --stationary
 
   where toPlayer ex px  | ex < px - 1 = espeed
                         | ex > px + 1 = -espeed - espeed
                         | otherwise = 0
 
-        dodgeBullet     | danger > 0 = espeed
-                        | danger < 0 = -espeed
-                        | otherwise  = 0
-        danger = sum (map zone bullets)
-        zone bullet@Bullet{position = (Position x y)} | y < ey && x <=  ex -1 && x > ex - width - 20 = espeed
-                                                      | y < ey && x >   ex +1 && x < ex + width + 20 = (-espeed)
-                                                      | otherwise = 0
+        dodgeBullet     | null danger = 0
+                        | otherwise   = head danger + head danger
+        danger   = filter (/= 0) (map zone bullets)
+        above y   = ey > y && ey < y + 100
+        inPath x = x > (ex - width - 20) && x < (ex + width + 20)
+        zone bullet@Bullet{position = (Position x y)} | above y && inPath x && ex >= x = espeed
+                                                      | above y && inPath x && ex < x = (-espeed)
+                                                      | otherwise                     = 0
 
-newEnemy :: StdGen -> (Maybe Enemy,StdGen)
+newEnemy :: StdGen -> (Maybe Enemy,StdGen) 
 newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 550},rg3)
             | otherwise   = (Nothing,rg3)
             where (number,    rg1)  = randomR (0,     100 :: Int) rg            --maybe a new enemy spawns
