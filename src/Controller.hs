@@ -12,29 +12,34 @@ import Data.List
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRate, bullet, health }, keys, lost, bullets, enemies, randomGen, score}=
+step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRate, bullet }, keys, lost, bullets, enemies, randomGen, score}=
     if not paused then return $ gstate { 
                                           elapsedTime = elapsedTime gstate + secs, 
                                           player      = plr {pos = movementUpdate keys pos, lastFire = fire, health = health - plrcolldamage},
-                                          bullets     = map bulletAniUp (filter boundcheck (map bulletUpdate bulletsafterenemies)), 
+                                          bullets     = map bulletAniUp (filter boundcheck (map bulletUpdate bulletsover)) , 
                                           lost        = (health <= 0), 
-                                          enemies     = updatedenemies,
+                                          enemies     = enemycollover,
                                           randomGen   = nrg,
                                           score       = score + killscore
                                           }
                   else return   gstate
         where (bulletlist, fire)                                  = shootUpdate secs gstate
-              (bulletsover, plr )                                 = shipHit bulletlist player
-              (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemies
-              boundcheck (Bullet pos (BulletType speed box dmg _) _ ) = not (outOfBounds pos box)
-              killscore                                           = sum (map enemyScore enemiesover)
-              (updatedenemies, nrg)                               = enemyUpdate gstate (mapMaybe enemyKill enemycollover)
-              enemycollover                                       = map snd collisioncheck
-              plrcolldamage                                       = sum (map fst collisioncheck)
-              collisioncheck                                      = (map (enemyColl player) enemiesover)
-              bulletAniUp bullet@Bullet{frame}                    | frame < 2 = bullet {frame = frame + secs}
+              bullenem                                            = map (enemyShoot secs)  enemies
+              enemsaftershoot                                     = map snd bullenem
+              bulletsaftenem                                      = map fromJust (filter isJust (map fst bullenem))                                   -- Checks and fires if player can
+              bulletsshot                                         = (bulletlist ++ bulletsaftenem)                
+              (bulletsover, plr@Player {health} )                 = shipHit bulletsshot player                                     -- Checks if the ship hits one of the bullets
+              (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemsaftershoot                                  -- Checks if one of the ships hits one of the bullets
+              boundcheck (Bullet pos (BulletType speed box dmg _) _ ) = not (outOfBounds pos box)                                 -- Checks if the bullet is not out of bounds
+              killscore                                           = sum (map enemyScore enemiesover)                              -- Adds score to player score if enemy died
+              (updatedenemies, nrg)                               = enemyUpdate gstate (mapMaybe enemyKill enemiesover)         -- Updates the killed enemies after collision check
+              enemycollover                                       = map snd collisioncheck                                        -- Enemies after collision check
+              plrcolldamage                                       = sum (map fst collisioncheck)                                  -- Damage done to the player in collision check
+              collisioncheck                                      = (map (enemyColl player) updatedenemies)                          -- Collision check of enemies
+              bulletAniUp bullet@Bullet{frame}                    | frame < 2 = bullet {frame = frame + secs}                     -- Bullet animation frame update
                                                                   | otherwise = bullet {frame = 0}
-
+              
+              
 enemyKill :: Enemy -> Maybe Enemy
 enemyKill enemy@Enemy{ehealth}                            | ehealth >= 0 = Just enemy
                                                           | otherwise = Nothing
@@ -47,8 +52,13 @@ enemyUpdate gs@GameState{randomGen} enemies | isJust newEn = ((fromJust newEn) :
                                             | otherwise    = (map positionUpdate enemies,rg)
                                       where positionUpdate en@Enemy{epos, ehitbox}  = en{epos = updatePosE (aiMove en gs) epos ehitbox}
                                             (newEn, rg)    = newEnemy randomGen
+enemyCanShoot :: Enemy -> Bool                                            
+enemyCanShoot Enemy{efireRate, eLastFire} | efireRate < eLastFire = True
+                                          | otherwise = False
 
-
+enemyShoot ::  Float -> Enemy -> (Maybe Bullet,Enemy)
+enemyShoot secs enem@Enemy{eBullet, eLastFire, epos = (Position xp yp), ehitbox= (HitBox x y)} | enemyCanShoot enem = (Just (Bullet (Position xp (yp- (fromIntegral y) `div` 2 )) eBullet 0) , enem{ eLastFire = 0}  )
+                                                                                               | otherwise = (Nothing,  enem{ eLastFire = secs + eLastFire})
 aiMove :: Enemy -> GameState -> Move
 aiMove Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), eai, espeed} GameState{player = Player{pos = (Position px py)}, bullets}   
     | eai == 0  = Move (toPlayer ex px) (toPlayer ey py)                            --trail
@@ -84,11 +94,11 @@ newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 55
                   (ai,        rg3)  = randomR (0,       4 :: Int) rg2           --the new enemy has a random ai assigned                            
 
 selectEnemy :: [Enemy]
-selectEnemy = [Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color blue    (rectangleSolid 50 50)) 0 2 100
-              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color white   (rectangleSolid 50 50)) 1 2 50
-              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color yellow  (rectangleSolid 50 50)) 2 2 10
-              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color red     (rectangleSolid 50 50)) 3 2 10
-              ,Enemy enemySpawn eHitBox 0 standardBullet 0 5 (color black   (rectangleSolid 50 50)) 4 2 10]
+selectEnemy = [Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color blue    (rectangleSolid 50 50)) 0 2 100
+              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color white   (rectangleSolid 50 50)) 1 2 50
+              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color yellow  (rectangleSolid 50 50)) 2 2 10
+              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color red     (rectangleSolid 50 50)) 3 2 10
+              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color black   (rectangleSolid 50 50)) 4 2 10]
 
 
 shipsHit :: Ship k => [Bullet] -> [k] -> ([k],[Bullet] )
