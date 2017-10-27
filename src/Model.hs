@@ -80,6 +80,11 @@ instance Ship Enemy where
   isHit enemy@(Enemy {epos, ehitbox, ehealth}) (Bullet bulletpos (BulletType _ size dmg))    | collision (ehitbox, epos) (size, bulletpos) = Just dmg
                                                                                              | otherwise = Nothing
   getDamage dmg enemy@(Enemy { ehealth}) = enemy {ehealth = ehealth - dmg}
+enemyColl :: Player -> Enemy -> (Float, Enemy)
+
+enemyColl player@(Player {pos, hitbox, health}) enemy@(Enemy {epos, ehitbox, ehealth}) | collision (hitbox, pos) (ehitbox, epos) = (collDamage, enemy {ehealth= ehealth-collDamage})
+                                                                                          | otherwise = (0, enemy)
+
 
 collision:: (HitBox, Position) -> (HitBox, Position) -> Bool
 collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = (x1  < x2 + w2) &&
@@ -131,3 +136,6 @@ beginPos = Position 0 0
 
 enemySpawn :: Position
 enemySpawn = Position 0 560
+
+collDamage :: Float
+collDamage = 10
