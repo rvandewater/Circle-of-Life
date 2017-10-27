@@ -58,20 +58,23 @@ aiMove Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), eai, espe
         = if dodgeBullet == 0 
             then  Move (toPlayer ex px) (toPlayer ey py)                            --dodge and trail
             else  Move dodgeBullet      (-espeed)
-    | otherwise = Move 0                (-espeed)         --stationary
+    | otherwise = Move 0                (-espeed)                                   --stationary
 
   where toPlayer ex px  | ex < px - 1 = espeed
                         | ex > px + 1 = -espeed - espeed
                         | otherwise = 0
 
-        dodgeBullet     | null danger = 0
-                        | otherwise   = head danger + head danger
-        danger   = filter (/= 0) (map zone bullets)
-        above y   = ey > y && ey < y + 100
-        inPath x = x > (ex - width - 20) && x < (ex + width + 20)
-        zone bullet@Bullet{position = (Position x y)} | above y && inPath x && ex >= x = espeed
-                                                      | above y && inPath x && ex < x = (-espeed)
-                                                      | otherwise                     = 0
+        dodgeBullet     | null tododge = 0
+                        | otherwise    = 2*(fromJust (head tododge))
+
+        zone bullet@Bullet{position = (Position x y)} 
+                        | above y && inPath x = if ex < x then Just (-espeed) else Just espeed
+                        | otherwise           = Nothing             
+
+        tododge         = filter isJust (map zone bullets)
+        above y         = ey > y && ey < y + 200
+        inPath x        = x > (ex - width - 20) && x < (ex + width + 20)
+
 
 newEnemy :: StdGen -> (Maybe Enemy,StdGen) 
 newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 550},rg3)

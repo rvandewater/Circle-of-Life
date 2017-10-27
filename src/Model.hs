@@ -108,10 +108,10 @@ standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage (color red (c
 
 --moventSpeed of the player
 movementSpeed :: Int
-movementSpeed = 10
+movementSpeed = 5
 
 bulletSpeed :: Move
-bulletSpeed = Move 0 5
+bulletSpeed = Move 0 10
 
 bulletHitBox :: HitBox
 bulletHitBox = HitBox 10 10 
