@@ -17,7 +17,7 @@ step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRat
                                           player      = plr {pos = movementUpdate keys pos, lastFire = fire},
                                           bullets     = filter boundcheck (map bulletUpdate bulletsafterenemies), 
                                           lost        = (health <= 0), 
-                                          enemies     = map enemyUpdate (mapMaybe enemyKill enemiesover) ++ newEns,
+                                          enemies     = map (enemyUpdate player) (mapMaybe enemyKill enemiesover) ++ newEns,
                                           randomGen   = nrg,
                                           score       = score + killscore
                                           }
@@ -33,14 +33,14 @@ enemyKill :: Enemy -> Maybe Enemy
 enemyKill enemy@Enemy{ehealth}                            | ehealth >= 0 = Just enemy
                                                           | otherwise = Nothing
 enemyScore :: Enemy -> Int
-enemyScore enemy@Enemy{ehealth}                            | ehealth >= 0 = 0
+enemyScore enemy@Enemy{ehealth}                           | ehealth >= 0 = 0
                                                           | otherwise = 10
 
-enemyUpdate :: Enemy -> Enemy
-enemyUpdate enemy@Enemy{epos, ehitbox} = enemy {epos = updatePosE (Move 0 (-2)) epos ehitbox}
-
+enemyUpdate :: Player -> Enemy -> Enemy
+enemyUpdate Player{pos} enemy@Enemy{epos, ehitbox, eai} | eai == 1  = enemy {epos = updatePosE (Move 0 (-3)) epos ehitbox}
+                                                        | otherwise = enemy {epos = updatePosE (Move 0 (-2)) epos ehitbox}
 newEnemies :: GameState -> ([Enemy],StdGen)
-newEnemies gs@GameState{randomGen} = if number == 0 then ([Enemy spawn eHitBox 0 standardBullet 0 5 (color red (rectangleSolid 50 50))],nnrg) else ([],nnrg)
+newEnemies gs@GameState{randomGen} = if number == 0 then ([Enemy spawn eHitBox 0 standardBullet 0 5 (color red (rectangleSolid 50 50)) 1],nnrg) else ([],nnrg)
                             where (number, nrg)     = randomR (0, 100 :: Int) randomGen
                                   (location, nnrg)  = randomR (-300, 300 :: Int) nrg
                                   spawn             = Position location 550
