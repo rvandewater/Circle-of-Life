@@ -9,6 +9,7 @@ import System.Random
 -- ********************* DATA TYPES ***************
 data GameState = GameState {
                    elapsedTime :: Float
+                 , flags :: GameFlags
                  , player :: Player
                  , keys :: KeysPressed
                  , paused :: Bool
@@ -20,6 +21,10 @@ data GameState = GameState {
                  , randomGen :: StdGen}
 
 data Bullet = Bullet { position:: Position, kind :: BulletType, frame :: Float}
+
+type GameFlags = [Screen]
+
+data Screen = Screen {ison :: Bool, visual :: Picture}
 
 data BulletType =  BulletType { speed:: Move, size :: HitBox, damage :: Float, bulletpic :: Picture}
 
@@ -94,7 +99,9 @@ collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = (x1  <
 -- ********************* CONSTANTS ***************
 initialState :: StdGen -> GameState
 --Starting phase
-initialState = GameState 0 
+initialState = GameState 
+                          0 
+                          screens
                          (Player beginPos playerHitBox 0.5 standardBullet 0 100) 
                          (KeysPressed False False False False False) 
                          False 
@@ -103,6 +110,9 @@ initialState = GameState 0
                          []
                          1
                          0
+screens :: GameFlags
+screens = [Screen False (color green (Text "Game"))]
+
 standardBullet :: BulletType
 standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage (color red (circleSolid 5)) )
 
