@@ -78,11 +78,11 @@ aiMove Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), eai, espe
                         | otherwise    = 2*(fromJust (head tododge))
 
         zone bullet@Bullet{position = (Position x y)} 
-                        | above y && inPath x = if ex < x then Just (-espeed) else Just espeed
-                        | otherwise           = Nothing             
+                        | reaction y && inPath x = if ex < x then Just (-espeed) else Just espeed
+                        | otherwise              = Nothing             
 
         tododge         = filter isJust (map zone bullets)
-        above y         = ey > y && ey < y + 200
+        reaction y      = y < ey + 200 && y > ey - 200
         inPath x        = x > (ex - width - 20) && x < (ex + width + 20)
 
 
