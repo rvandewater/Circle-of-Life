@@ -12,8 +12,12 @@ import Data.List
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRate, bullet }, keys, lost, bullets, enemies, randomGen, score}=
-    if not paused then return $ gstate { 
+step secs gstate@GameState {paused, lost}  | paused || lost = return gstate
+                                           | otherwise = gameUpdate secs gstate
+
+gameUpdate :: Float -> GameState -> IO GameState
+gameUpdate secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRate, bullet }, keys, lost, bullets, enemies, randomGen, score} =
+     return $ gstate { 
                                           elapsedTime = elapsedTime gstate + secs, 
                                           player      = plr {pos = movementUpdate keys pos, lastFire = fire, health = health - plrcolldamage},
                                           bullets     = map bulletAniUp (filter boundcheck (map bulletUpdate bulletsover)) , 
@@ -22,7 +26,6 @@ step secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRat
                                           randomGen   = nrg,
                                           score       = score + killscore
                                           }
-                  else return   gstate
         where (bulletlist, fire)                                  = shootUpdate secs gstate
               bullenem                                            = map (enemyShoot secs)  enemies
               enemsaftershoot                                     = map snd bullenem
@@ -141,6 +144,8 @@ input e gstate = return (inputKey e gstate)
 inputKey :: Event -> GameState -> GameState
 --Pause button handle
 inputKey (EventKey (Char 'p') Down _ _) gstate@GameState { keys, paused }= gstate {paused = not paused}
+--Reset game
+inputKey (EventKey (Char 'r') Down _ _) GameState{randomGen} = initialState randomGen
 --Handle game input
 inputKey (EventKey c _ _ _ ) gstate@GameState { keys, paused } = gstate {keys = (updatePress c keys )}
 -- Otherwise keep the same 
