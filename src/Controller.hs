@@ -12,7 +12,7 @@ import Data.List
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate@GameState { screen}                                                     | screen == PausedGame || screen == MainMenu || screen == GameOver || screen == DifficultySelect  = return gstate
+step secs gstate@GameState { screen}                                                     | screen == PausedGame || screen == MainMenu || screen == GameOver || screen == DifficultySelect || screen == LevelSelect = return gstate
                                                                                          | otherwise = gameUpdate secs gstate
 
 gameUpdate :: Float -> GameState -> IO GameState
@@ -164,6 +164,7 @@ movementUpdate (KeysPressed w a s d sp) =   boolupdate w (Move 0 movementSpeed).
 input :: Event -> GameState -> IO GameState
 input e gstate@GameState{screen = MainMenu}  = return (mainMenuUpdate e gstate)
 input e gstate@GameState{screen = DifficultySelect } = return (difficultyUpdate e gstate)
+input e gstate@GameState{screen = LevelSelect } = return (levelUpdate e gstate)
 input e gstate@GameState{screen = PlayGame}  = return (playGameUpdate e gstate)
 input e gstate@GameState{screen = PausedGame}  = return (pausedGameUpdate e gstate)
 input e gstate@GameState{screen = GameOver} = return (gameOverUpdate e gstate)
@@ -204,8 +205,13 @@ gameOverUpdate (EventKey (Char 'r') Down _ _) GameState{randomGen} = initialStat
 gameOverUpdate _ gstate = gstate 
 
 difficultyUpdate :: Event -> GameState -> GameState
-difficultyUpdate (EventKey (Char '1') Down _ _) gstate@GameState{screen} = gstate{screen = PlayGame, difficulty = 1}
-difficultyUpdate (EventKey (Char '2') Down _ _) gstate@GameState{screen} = gstate{screen = PlayGame, difficulty = 2}
-difficultyUpdate (EventKey (Char '3') Down _ _) gstate@GameState{screen} = gstate{screen = PlayGame, difficulty = 3}
+difficultyUpdate (EventKey (Char '1') Down _ _) gstate@GameState{screen} = gstate{screen = LevelSelect, difficulty = 1}
+difficultyUpdate (EventKey (Char '2') Down _ _) gstate@GameState{screen} = gstate{screen = LevelSelect, difficulty = 2}
+difficultyUpdate (EventKey (Char '3') Down _ _) gstate@GameState{screen} = gstate{screen = LevelSelect, difficulty = 3}
 difficultyUpdate _ gstate = gstate
 
+levelUpdate :: Event -> GameState -> GameState
+levelUpdate (EventKey (Char '1') Down _ _) gstate@GameState{screen} = gstate{screen = PlayGame, level = 1}
+levelUpdate (EventKey (Char '2') Down _ _) gstate@GameState{screen} = gstate{screen = PlayGame, level = 2}
+levelUpdate (EventKey (Char '3') Down _ _) gstate@GameState{screen} = gstate{screen = PlayGame, level = 3}
+levelUpdate _ gstate = gstate

@@ -22,7 +22,7 @@ data GameState = GameState {
 
 data Bullet = Bullet { position:: Position, kind :: BulletType, frame :: Float}
 
-data GameScreen = MainMenu | GameOver | PlayGame | DifficultySelect | PausedGame | NoScreen
+data GameScreen = MainMenu | GameOver | PlayGame | DifficultySelect | LevelSelect | PausedGame | NoScreen
   deriving (Eq)
 
 data BulletType =  BulletType { speed:: Move, size :: HitBox, damage :: Float, bulletpic :: Picture}
