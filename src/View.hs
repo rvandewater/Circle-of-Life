@@ -8,9 +8,11 @@ import Data.Fixed
 
 --Generate display
 view :: Picture -> GameState -> IO Picture
-view bg gs@GameState{screen,score} | screen == MainMenu = return (color green (Text "Game"))
+view bg gs@GameState{screen,score} | screen == MainMenu = return (pictures[(scale 0.5 0.5(translate (-fromIntegral screenx) 0 (color green (Text "Circle of life")))), (translate 0 (-200) (color green (thickCircle 10 20)))])
                                    | screen == GameOver      = return (pictures [translate (-200) 0 (color green (Text "Game")), translate (-200) (-200) (color green (Text "Over")),  translate (-200) (-400) (color green (Text (show score)))])
                                    | screen == PausedGame  = return (translate (-200) 0 (color green (Text "Paused")))
+                                   | screen == DifficultySelect  = return (scale 0.5 0.5 (pictures [ (translate (- ( fromIntegral screenx)) 0 (color green (Text "Select your difficulty"))), translate 0 (-200) (color green (Text "1")),
+                                                        translate 0 (-310) (color green (Text "2")), translate 0 (-420) (color green (Text "3")) ]))
                                    | otherwise = return (viewPure bg gs)
 
 viewPure :: Picture -> GameState -> Picture

@@ -15,12 +15,14 @@ data GameState = GameState {
                  , bullets :: [Bullet]
                  , enemies :: [Enemy]
                  , level :: Int
+                 , difficulty :: Int
                  , score :: Int
                  , randomGen :: StdGen}
 
+
 data Bullet = Bullet { position:: Position, kind :: BulletType, frame :: Float}
 
-data GameScreen = MainMenu | GameOver | PlayGame | PausedGame | NoScreen
+data GameScreen = MainMenu | GameOver | PlayGame | DifficultySelect | PausedGame | NoScreen
   deriving (Eq)
 
 data BulletType =  BulletType { speed:: Move, size :: HitBox, damage :: Float, bulletpic :: Picture}
@@ -103,6 +105,7 @@ initialState = GameState
                          (KeysPressed False False False False False) 
                          [] 
                          []
+                         1
                          1
                          0
 
