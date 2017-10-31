@@ -64,15 +64,30 @@ enemyCanShoot Enemy{efireRate, eLastFire} | efireRate < eLastFire = True
 enemyShoot ::  Float -> Enemy -> (Maybe Bullet,Enemy)
 enemyShoot secs enem@Enemy{eBullet, eLastFire, epos = (Position xp yp), ehitbox= (HitBox x y)} | enemyCanShoot enem = (Just (Bullet (Position xp (yp- (fromIntegral y) `div` 2 )) eBullet 0) , enem{ eLastFire = 0}  )
                                                                                                | otherwise = (Nothing,  enem{ eLastFire = secs + eLastFire})
+
+{-                                                                                               aiMove :: Enemy -> GameState -> Move
+aiMove e@Enemy{eai} gs  | eai == 0  = trail      e
+                        | eai == 1  = aim        e
+                        | eai == 2  = dodge      e
+                        | eai == 3  = dodgetrail e
+                        | otherwise = stationary e
+
+trail :: Enemy -> GameState -> Move
+trail Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), eai, espeed} GameState{player = Player{pos = (Position px py)}, bullets}
+ = Move (toPlayer ex px) (toPlayer ey py) 
+      where toPlayer ex px    | ex < px - 1 = espeed
+                              | ex > px + 1 = -espeed - espeed
+                              | otherwise = 0
+-}
 aiMove :: Enemy -> GameState -> Move
 aiMove Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), eai, espeed} GameState{player = Player{pos = (Position px py)}, bullets}   
     | eai == 0  = Move (toPlayer ex px) (toPlayer ey py)                            --trail
     | eai == 1  = Move (toPlayer ex px) (-espeed)                                   --trail on x
     | eai == 2  = Move dodgeBullet      (-espeed)                                   --dodge
-    | eai == 3  
-        = if dodgeBullet == 0 
+    | eai == 3  = if dodgeBullet == 0 
             then  Move (toPlayer ex px) (toPlayer ey py)                            --dodge and trail
             else  Move dodgeBullet      (-espeed)
+    
     | otherwise = Move 0                (-espeed)                                   --stationary
 
   where toPlayer ex px  | ex < px - 1 = espeed
@@ -80,16 +95,17 @@ aiMove Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), eai, espe
                         | otherwise = 0
 
         dodgeBullet     | null tododge = 0
-                        | otherwise    = 2*(fromJust (head tododge))
-
-        zone bullet@Bullet{position = (Position x y)} 
-                        | reaction y && inPath x = if ex < x then Just (-espeed) else Just espeed
-                        | otherwise              = Nothing             
+                        | otherwise    = 2*(fromJust (head tododge))     
 
         tododge         = filter isJust (map zone bullets)
-        reaction y      = y < ey + 200 && y > ey - 200
-        inPath x        = x > (ex - width - 20) && x < (ex + width + 20)
 
+        zone Bullet{position = (Position x y), kind = BulletType{speed = Move xmov ymov}}
+            | abs ey -  abs y < 200                                           --if in range y
+              && (ymov > 0 && ey > y) || (ymov < 0 && ey < y)                 --if closing in on y
+              && (abs x < abs ex + width + 20)                                --if closing in on x 
+              = if ex < x     then Just (-espeed)
+                              else Just espeed
+            | otherwise       =    Nothing
 
 newEnemy :: StdGen -> (Maybe Enemy,StdGen) 
 newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 550},rg3)
@@ -99,11 +115,11 @@ newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 55
                   (ai,        rg3)  = randomR (0,       4 :: Int) rg2           --the new enemy has a random ai assigned                            
 
 selectEnemy :: [Enemy]
-selectEnemy = [Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color blue    (rectangleSolid 50 50)) 0 2 100
-              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color white   (rectangleSolid 50 50)) 1 2 50
-              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color yellow  (rectangleSolid 50 50)) 2 2 10
-              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color red     (rectangleSolid 50 50)) 3 2 10
-              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color black   (rectangleSolid 50 50)) 4 2 10]
+selectEnemy = [Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color blue    (rectangleSolid 50 50)) 0 2 10
+              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color white   (rectangleSolid 50 50)) 1 2 20
+              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color yellow  (rectangleSolid 50 50)) 2 2 30
+              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color red     (rectangleSolid 50 50)) 3 2 100
+              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color black   (rectangleSolid 50 50)) 4 2 1]
 
 
 shipsHit :: Ship k => [Bullet] -> [k] -> ([k],[Bullet] )
