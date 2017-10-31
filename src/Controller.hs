@@ -12,16 +12,16 @@ import Data.List
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate@GameState {paused, lost}  | paused || lost = return gstate
-                                           | otherwise = gameUpdate secs gstate
+step secs gstate@GameState { screen}                                                     | screen == PausedGame || screen == MainMenu || screen == GameOver  = return gstate
+                                                                                         | otherwise = gameUpdate secs gstate
 
 gameUpdate :: Float -> GameState -> IO GameState
-gameUpdate secs gstate@GameState {paused, player = player@Player {pos, hitbox, fireRate, bullet }, keys, lost, bullets, enemies, randomGen, score} =
+gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate, bullet }, screen, keys, bullets, enemies, randomGen, score} =
      return $ gstate { 
                                           elapsedTime = elapsedTime gstate + secs, 
                                           player      = plr {pos = movementUpdate keys pos, lastFire = fire, health = health - plrcolldamage},
                                           bullets     = map bulletAniUp (filter boundcheck (map bulletUpdate bulletsover)) , 
-                                          lost        = (health <= 0), 
+                                          screen      = screenChecker screen, 
                                           enemies     = enemycollover,
                                           randomGen   = nrg,
                                           score       = score + killscore
@@ -41,6 +41,8 @@ gameUpdate secs gstate@GameState {paused, player = player@Player {pos, hitbox, f
               collisioncheck                                      = (map (enemyColl player) updatedenemies)                          -- Collision check of enemies
               bulletAniUp bullet@Bullet{frame}                    | frame < 2 = bullet {frame = frame + secs}                     -- Bullet animation frame update
                                                                   | otherwise = bullet {frame = 0}
+              screenChecker      scr                             | health <= 0 = GameOver
+                                                                 | otherwise = scr
               
               
 enemyKill :: Enemy -> Maybe Enemy
@@ -154,25 +156,41 @@ movementUpdate (KeysPressed w a s d sp) =   boolupdate w (Move 0 movementSpeed).
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
-input e gstate = return (inputKey e gstate)
+input e gstate@GameState{screen = MainMenu}  = return (mainMenuUpdate e gstate)
+input e gstate@GameState{screen = PlayGame}  = return (playGameUpdate e gstate)
+input e gstate@GameState{screen = PausedGame}  = return (pausedGameUpdate e gstate)
+input e gstate@GameState{screen = GameOver} = return (gameOverUpdate e gstate)
+input e gstate@game  = return gstate
+
+pausedGameUpdate :: Event -> GameState -> GameState
+pausedGameUpdate (EventKey (Char 'p')  Down _ _) gstate@GameState{screen} = gstate{screen = PlayGame} 
+pausedGameUpdate _ gstate = gstate
 
 -- | Handle input of a key
-inputKey :: Event -> GameState -> GameState
+playGameUpdate :: Event -> GameState -> GameState
 --Pause button handle
-inputKey (EventKey (Char 'p') Down _ _) gstate@GameState { keys, paused }= gstate {paused = not paused}
+playGameUpdate (EventKey (Char 'p') Down _ _) gstate@GameState { screen} = gstate{screen = PausedGame}
 --Reset game
-inputKey (EventKey (Char 'r') Down _ _) GameState{randomGen} = initialState randomGen
+
 --Handle game input
-inputKey (EventKey c _ _ _ ) gstate@GameState { keys, paused } = gstate {keys = (updatePress c keys )}
+playGameUpdate (EventKey c Up _ _ ) gstate@GameState { keys} = gstate {keys = (updatePress c False keys )}
+playGameUpdate (EventKey c Down _ _ ) gstate@GameState { keys } = gstate {keys = (updatePress c True keys )}
 -- Otherwise keep the same 
-inputKey _ gstate = gstate 
+playGameUpdate _ gstate = gstate 
 
 --Updates the KeyPressed data type to reflect current pressed keys.
-updatePress :: Key -> KeysPressed -> KeysPressed
-updatePress (Char 'w')            keys@KeysPressed {w}     = keys { w     = not w }
-updatePress (Char 'a')            keys@KeysPressed {a}     = keys { a     = not a }
-updatePress (Char 's')            keys@KeysPressed {s}     = keys { s     = not s }
-updatePress (Char 'd')            keys@KeysPressed {d}     = keys { d     = not d }
-updatePress (SpecialKey KeySpace) keys@KeysPressed {space} = keys { space = not space}
-updatePress _                     x                          = x
+updatePress :: Key -> Bool -> KeysPressed -> KeysPressed
+updatePress (Char 'w')  b                          keys     = keys { w     = b }
+updatePress (Char 'a')  b          keys    = keys { a     = b }
+updatePress (Char 's')  b          keys     = keys { s     = b }
+updatePress (Char 'd')  b          keys    = keys { d     = b }
+updatePress (SpecialKey KeySpace) b keys = keys { space = b }
+updatePress _       _              x                          = x
 
+mainMenuUpdate :: Event -> GameState -> GameState
+mainMenuUpdate (EventKey (SpecialKey KeySpace) Up _ _) gstate@GameState{screen} = gstate{screen = PlayGame}
+mainMenuUpdate _ gstate = gstate 
+
+gameOverUpdate:: Event -> GameState -> GameState
+gameOverUpdate (EventKey (Char 'r') Down _ _) GameState{randomGen} = initialState randomGen
+gameOverUpdate _ gstate = gstate 

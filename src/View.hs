@@ -8,12 +8,13 @@ import Data.Fixed
 
 --Generate display
 view :: Picture -> GameState -> IO Picture
-view bg gs = return (viewPure bg gs)
+view bg gs@GameState{screen,score} | screen == MainMenu = return (color green (Text "Game"))
+                                   | screen == GameOver      = return (pictures [translate (-200) 0 (color green (Text "Game")), translate (-200) (-200) (color green (Text "Over")),  translate (-200) (-400) (color green (Text (show score)))])
+                                   | screen == PausedGame  = return (translate (-200) 0 (color green (Text "Paused")))
+                                   | otherwise = return (viewPure bg gs)
 
 viewPure :: Picture -> GameState -> Picture
-viewPure bg gstate@GameState{lost, paused,score}  | lost      = pictures [translate (-200) 0 (color green (Text "Game")), translate (-200) (-200) (color green (Text "Over")),  translate (-200) (-400) (color green (Text (show score)))]
-                                                  | paused    = translate (-200) 0 (color green (Text "Paused"))
-                                                  | otherwise = pictures [updateBg bg gstate, playerVisual gstate, bulletVisual gstate, enemyVisual gstate, informationVisual gstate    ]
+viewPure bg gstate@GameState{score, screen}             = pictures [updateBg bg gstate, playerVisual gstate, bulletVisual gstate, enemyVisual gstate, informationVisual gstate    ]
 --Updating background
 updateBg :: Picture -> GameState -> Picture
 updateBg bg gs = scale informationScaler 1 (translate 0 (-(mod' (100 * (elapsedTime gs)) 1440) + 720) bg)
