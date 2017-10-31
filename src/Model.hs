@@ -29,9 +29,9 @@ data BulletType =  BulletType { speed:: Move, size :: HitBox, damage :: Float, b
 
 data HitBox = HitBox { width :: Int, height :: Int}   
 
-data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float }
+data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float, hitAnim :: Float }
 
-data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float , epic :: Picture, eai :: Int, espeed :: Int, killpoints :: Int}
+data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float , epic :: Picture, eai :: Int, espeed :: Int, killpoints :: Int, eHitAnim :: Float}
 
 data Position = Position { xpos :: Int, ypos :: Int }
 
@@ -74,15 +74,17 @@ class Ship k where
 
 instance Ship Player where 
   isHit player@(Player {pos, hitbox, health}) (Bullet bulletpos (BulletType _ size dmg _) _)    | collision (hitbox, pos) (size, bulletpos) = Just dmg
-                                                                                            | otherwise = Nothing
-  getDamage dmg player@(Player { health}) = player {health = health - dmg}
+                                                                                                | otherwise = Nothing
+  getDamage dmg player@(Player { health}) | dmg <= 0 = player
+                                          | otherwise = player {health = health - dmg, hitAnim = 1}
 instance Ship Enemy where
   isHit enemy@(Enemy {epos, ehitbox, ehealth}) (Bullet bulletpos (BulletType _ size dmg _) _)    | collision (ehitbox, epos) (size, bulletpos) = Just dmg
                                                                                              | otherwise = Nothing
-  getDamage dmg enemy@(Enemy { ehealth}) = enemy {ehealth = ehealth - dmg}
+  getDamage dmg enemy@(Enemy { ehealth}) | dmg <= 0 = enemy
+                                         | otherwise =  enemy {ehealth = ehealth - dmg, eHitAnim = 1}
 enemyColl :: Player -> Enemy -> (Float, Enemy)
 
-enemyColl player@(Player {pos, hitbox, health}) enemy@(Enemy {epos, ehitbox, ehealth}) | collision (hitbox, pos) (ehitbox, epos) = (collDamage, enemy {ehealth= ehealth-collDamage})
+enemyColl player@(Player {pos, hitbox, health}) enemy@(Enemy {epos, ehitbox, ehealth})    | collision (hitbox, pos) (ehitbox, epos) = (collDamage, enemy {ehealth= ehealth-collDamage, eHitAnim=1})
                                                                                           | otherwise = (0, enemy)
 
 
@@ -97,7 +99,7 @@ initialState :: StdGen -> GameState
 initialState = GameState 
                          0 
                          MainMenu
-                         (Player beginPos playerHitBox 0.5 standardBullet 0 100) 
+                         (Player beginPos playerHitBox 0.5 standardBullet 0 100 0) 
                          (KeysPressed False False False False False) 
                          [] 
                          []

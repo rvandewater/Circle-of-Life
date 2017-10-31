@@ -16,13 +16,13 @@ step secs gstate@GameState { screen}                                            
                                                                                          | otherwise = gameUpdate secs gstate
 
 gameUpdate :: Float -> GameState -> IO GameState
-gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate, bullet }, screen, keys, bullets, enemies, randomGen, score} =
+gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate, bullet}, screen, keys, bullets, enemies, randomGen, score} =
      return $ gstate { 
                                           elapsedTime = elapsedTime gstate + secs, 
-                                          player      = plr {pos = movementUpdate keys pos, lastFire = fire, health = health - plrcolldamage},
+                                          player      = plr {pos = movementUpdate keys pos, lastFire = fire, health = health - plrcolldamage, hitAnim = hitAnimReset hitAnim},
                                           bullets     = map bulletAniUp (filter boundcheck (map bulletUpdate bulletsover)) , 
                                           screen      = screenChecker screen, 
-                                          enemies     = enemycollover,
+                                          enemies     = map enemAnimReset(enemycollover),
                                           randomGen   = nrg,
                                           score       = score + killscore
                                           }
@@ -31,7 +31,7 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
               enemsaftershoot                                     = map snd bullenem
               bulletsaftenem                                      = map fromJust (filter isJust (map fst bullenem))                                   -- Checks and fires if player can
               bulletsshot                                         = (bulletlist ++ bulletsaftenem)                
-              (bulletsover, plr@Player {health} )                 = shipHit bulletsshot player                                     -- Checks if the ship hits one of the bullets
+              (bulletsover, plr@Player {health, hitAnim} )        = shipHit bulletsshot player                                     -- Checks if the ship hits one of the bullets
               (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemsaftershoot                                  -- Checks if one of the ships hits one of the bullets
               boundcheck (Bullet pos (BulletType speed box dmg _) _ ) = not (outOfBounds pos box)                                 -- Checks if the bullet is not out of bounds
               killscore                                           = sum (map enemyScore enemiesover)                              -- Adds score to player score if enemy died
@@ -43,6 +43,12 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
                                                                   | otherwise = bullet {frame = 0}
               screenChecker      scr                             | health <= 0 = GameOver
                                                                  | otherwise = scr
+              hitAnimReset               frm                     | plrcolldamage > 0 = 1
+                                                                 | frm < 0 = 0
+                                                                 | otherwise = frm - secs
+              enemAnimReset  enem@Enemy{eHitAnim}                | eHitAnim > 0 = enem{eHitAnim = eHitAnim-secs}
+                                                                 | eHitAnim <= 0 = enem{eHitAnim = 0}
+              
               
               
 enemyKill :: Enemy -> Maybe Enemy
@@ -115,11 +121,11 @@ newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 55
                   (ai,        rg3)  = randomR (0,       4 :: Int) rg2           --the new enemy has a random ai assigned                            
 
 selectEnemy :: [Enemy]
-selectEnemy = [Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color blue    (rectangleSolid 50 50)) 0 2 10
-              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color white   (rectangleSolid 50 50)) 1 2 20
-              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color yellow  (rectangleSolid 50 50)) 2 2 30
-              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color red     (rectangleSolid 50 50)) 3 2 100
-              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color black   (rectangleSolid 50 50)) 4 2 1]
+selectEnemy = [Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color blue    (rectangleSolid 50 50)) 0 2 10 0
+              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color white   (rectangleSolid 50 50)) 1 2 20 0
+              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color yellow  (rectangleSolid 50 50)) 2 2 30 0
+              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color red     (rectangleSolid 50 50)) 3 2 100 0
+              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color black   (rectangleSolid 50 50)) 4 2 1 0]
 
 
 shipsHit :: Ship k => [Bullet] -> [k] -> ([k],[Bullet] )
