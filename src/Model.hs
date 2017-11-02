@@ -109,7 +109,7 @@ initialState = GameState
 
 selectEnemy :: [Enemy]
 --                   position   hitbox  fireRate  bullettype      lastfire  health  model ai  speed killpoints  HitAnim 
-selectEnemy = [Enemy enemySpawn eHitBox 1         standardEBullet 0         5       0     0   2     10          0
+selectEnemy = [Enemy enemySpawn eHitBox (1/0)     standardEBullet 0         5       0     4   2     10          0
               ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       1     1   2     20          0
               ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       2     2   2     30          0
               ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     3   2     100         0

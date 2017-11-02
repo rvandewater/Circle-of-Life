@@ -105,7 +105,7 @@ newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 55
             | otherwise   = (Nothing,rg3)
             where (number,    rg1)  = randomR (0,     100 :: Int) rg            --maybe a new enemy spawns
                   (location,  rg2)  = randomR (-275,  275 :: Int) rg1           --the new enemy location is random
-                  (ai,        rg3)  = randomR (0,       4 :: Int) rg2           --the new enemy has a random ai assigned                            
+                  (ai,        rg3)  = randomR (0,       0 :: Int) rg2           --the new enemy has a random ai assigned                            
 
 shipsHit :: Ship k => [Bullet] -> [k] -> ([k],[Bullet] )
 shipsHit bullets = foldl oneship ( [], bullets)                                  where
