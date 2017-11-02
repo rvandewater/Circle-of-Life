@@ -33,7 +33,15 @@ enemyVisual :: GameState -> Picture
 enemyVisual GameState{enemies} = pictures (map enemyPic enemies)
 
 enemyPic :: Enemy -> Picture
-enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _  epic _ _ _ eanim) = translate (fromIntegral xpos) (fromIntegral ypos) (scale (1-eanim) (1-eanim) epic)
+enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _  model _ _ _ eanim) = translate (fromIntegral xpos) (fromIntegral ypos) (scale (1-eanim) (1-eanim) (getModel model))
+
+getModel :: Int -> Picture
+getModel m | m == 0             = (color blue     (rectangleSolid 50 50))
+           | m == 1             = (color white    (rectangleSolid 50 50))
+           | m == 2             = (color yellow   (rectangleSolid 50 50))
+           | m == 3             = (color red      (rectangleSolid 50 50))
+           | m == 4             = (color black    (rectangleSolid 50 50))
+           | otherwise          = (color black    (rectangleSolid 50 50))
 
 --Visualizing bullets
 bulletVisual :: GameState -> Picture 

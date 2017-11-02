@@ -108,11 +108,12 @@ newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 55
                   (ai,        rg3)  = randomR (0,       4 :: Int) rg2           --the new enemy has a random ai assigned                            
 
 selectEnemy :: [Enemy]
-selectEnemy = [Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color blue    (rectangleSolid 50 50)) 0 2 10 0
-              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color white   (rectangleSolid 50 50)) 1 2 20 0
-              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color yellow  (rectangleSolid 50 50)) 2 2 30 0
-              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color red     (rectangleSolid 50 50)) 3 2 100 0
-              ,Enemy enemySpawn eHitBox 1 standardEBullet 0 5 (color black   (rectangleSolid 50 50)) 4 2 1 0]
+--                   position   hitbox  fireRate  bullettype      lastfire  health  model ai  speed killpoints  HitAnim 
+selectEnemy = [Enemy enemySpawn eHitBox 1         standardEBullet 0         5       0     0   2     10          0
+              ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       1     1   2     20          0
+              ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       2     2   2     30          0
+              ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     3   2     100         0
+              ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     4   2     1           0]
 
 
 shipsHit :: Ship k => [Bullet] -> [k] -> ([k],[Bullet] )

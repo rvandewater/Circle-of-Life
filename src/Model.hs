@@ -31,7 +31,7 @@ data HitBox = HitBox { width :: Int, height :: Int}
 
 data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float, hitAnim :: Float }
 
-data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float , epic :: Picture, eai :: Int, espeed :: Int, killpoints :: Int, eHitAnim :: Float}
+data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float , model :: Int, eai :: Int, espeed :: Int, killpoints :: Int, eHitAnim :: Float}
 
 data Position = Position { xpos :: Int, ypos :: Int }
 
