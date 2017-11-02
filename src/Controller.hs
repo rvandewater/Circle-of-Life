@@ -107,15 +107,6 @@ newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 55
                   (location,  rg2)  = randomR (-275,  275 :: Int) rg1           --the new enemy location is random
                   (ai,        rg3)  = randomR (0,       4 :: Int) rg2           --the new enemy has a random ai assigned                            
 
-selectEnemy :: [Enemy]
---                   position   hitbox  fireRate  bullettype      lastfire  health  model ai  speed killpoints  HitAnim 
-selectEnemy = [Enemy enemySpawn eHitBox 1         standardEBullet 0         5       0     0   2     10          0
-              ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       1     1   2     20          0
-              ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       2     2   2     30          0
-              ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     3   2     100         0
-              ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     4   2     1           0]
-
-
 shipsHit :: Ship k => [Bullet] -> [k] -> ([k],[Bullet] )
 shipsHit bullets = foldl oneship ( [], bullets)                                  where
                                     oneship :: Ship k => ([k],[Bullet]) -> k -> ([k],[Bullet])
