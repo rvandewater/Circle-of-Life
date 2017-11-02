@@ -71,47 +71,34 @@ enemyShoot ::  Float -> Enemy -> (Maybe Bullet,Enemy)
 enemyShoot secs enem@Enemy{eBullet, eLastFire, epos = (Position xp yp), ehitbox= (HitBox x y)} | enemyCanShoot enem = (Just (Bullet (Position xp (yp- (fromIntegral y) `div` 2 )) eBullet 0) , enem{ eLastFire = 0}  )
                                                                                                | otherwise = (Nothing,  enem{ eLastFire = secs + eLastFire})
 
-{-                                                                                               aiMove :: Enemy -> GameState -> Move
-aiMove e@Enemy{eai} gs  | eai == 0  = trail      e
-                        | eai == 1  = aim        e
-                        | eai == 2  = dodge      e
-                        | eai == 3  = dodgetrail e
-                        | otherwise = stationary e
-
-trail :: Enemy -> GameState -> Move
-trail Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), eai, espeed} GameState{player = Player{pos = (Position px py)}, bullets}
- = Move (toPlayer ex px) (toPlayer ey py) 
-      where toPlayer ex px    | ex < px - 1 = espeed
-                              | ex > px + 1 = -espeed - espeed
-                              | otherwise = 0
--}
 aiMove :: Enemy -> GameState -> Move
-aiMove Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), eai, espeed} GameState{player = Player{pos = (Position px py)}, bullets}   
-    | eai == 0  = Move (toPlayer ex px) (toPlayer ey py)                            --trail
-    | eai == 1  = Move (toPlayer ex px) (-espeed)                                   --trail on x
-    | eai == 2  = Move dodgeBullet      (-espeed)                                   --dodge
-    | eai == 3  = if dodgeBullet == 0 
-            then  Move (toPlayer ex px) (toPlayer ey py)                            --dodge and trail
-            else  Move dodgeBullet      (-espeed)
-    
-    | otherwise = Move 0                (-espeed)                                   --stationary
+aiMove enemy@Enemy{epos = (Position ex ey), eai, espeed} GameState{player = Player{pos = (Position px py)}, bullets}   
+    | eai == 0  = Move (toPlayer ex px espeed)      (toPlayer ey py espeed)              --trail
+    | eai == 1  = Move (toPlayer ex px espeed)      (-espeed)                            --aim (trail on x only)
+    | eai == 2  = Move (dodgeBullet bullets enemy)  (-espeed)                            --dodge
+    | eai == 3  = if (dodgeBullet bullets enemy) == 0                                    --dodge and trail
+            then  Move (toPlayer ex px espeed)      (toPlayer ey py espeed)              
+            else  Move (dodgeBullet bullets enemy)  (-espeed)
+    | otherwise = Move 0                            (-espeed)                            --stationary
 
-  where toPlayer ex px  | ex < px - 1 = espeed
-                        | ex > px + 1 = -espeed - espeed
-                        | otherwise = 0
+dodgeBullet :: [Bullet] -> Enemy -> Int
+dodgeBullet bullets Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), espeed}  
+                            | null tododge = 0
+                            | otherwise    = 2*(fromJust (head tododge))
 
-        dodgeBullet     | null tododge = 0
-                        | otherwise    = 2*(fromJust (head tododge))     
+        where   tododge     = filter isJust (map zone bullets)
+                zone Bullet{position = (Position x y), kind = BulletType{speed = Move xmov ymov}}
+                            | abs ey -  abs y < 200                                         --if in range y
+                            && (ymov > 0 && ey > y) || (ymov < 0 && ey < y)                 --if closing in on y
+                            && (abs x < abs ex + width + 20)                                --if closing in on x 
+                            = if ex < x     then Just (-espeed)
+                                            else Just espeed
+                            | otherwise       =    Nothing
 
-        tododge         = filter isJust (map zone bullets)
-
-        zone Bullet{position = (Position x y), kind = BulletType{speed = Move xmov ymov}}
-            | abs ey -  abs y < 200                                           --if in range y
-              && (ymov > 0 && ey > y) || (ymov < 0 && ey < y)                 --if closing in on y
-              && (abs x < abs ex + width + 20)                                --if closing in on x 
-              = if ex < x     then Just (-espeed)
-                              else Just espeed
-            | otherwise       =    Nothing
+toPlayer :: Int -> Int -> Int -> Int
+toPlayer ex px espeed | ex < px - 1 = espeed
+                      | ex > px + 1 = -espeed - espeed
+                      | otherwise = 0
 
 newEnemy :: StdGen -> (Maybe Enemy,StdGen) 
 newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 550},rg3)
@@ -189,12 +176,12 @@ playGameUpdate _ gstate = gstate
 
 --Updates the KeyPressed data type to reflect current pressed keys.
 updatePress :: Key -> Bool -> KeysPressed -> KeysPressed
-updatePress (Char 'w')  b                          keys     = keys { w     = b }
-updatePress (Char 'a')  b          keys    = keys { a     = b }
-updatePress (Char 's')  b          keys     = keys { s     = b }
-updatePress (Char 'd')  b          keys    = keys { d     = b }
+updatePress (Char 'w')  b           keys = keys { w     = b }
+updatePress (Char 'a')  b           keys = keys { a     = b }
+updatePress (Char 's')  b           keys = keys { s     = b }
+updatePress (Char 'd')  b           keys = keys { d     = b }
 updatePress (SpecialKey KeySpace) b keys = keys { space = b }
-updatePress _       _              x                          = x
+updatePress _                     _ x    = x
 
 mainMenuUpdate :: Event -> GameState -> GameState
 mainMenuUpdate (EventKey (SpecialKey KeySpace) Up _ _) gstate@GameState{screen} = gstate{screen = DifficultySelect}
