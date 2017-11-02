@@ -123,11 +123,11 @@ bulletUpdate :: Bullet -> Bullet
 bulletUpdate (Bullet pos (BulletType speed box dmg pic) up) = (Bullet (updatePos speed pos) (BulletType speed box dmg pic) up)
 
 shootUpdate :: Float -> GameState -> ([Bullet],Float)
-shootUpdate secs gstate@GameState { elapsedTime, bullets, player = player@Player {pos = Position {xpos,ypos}, hitbox, fireRate, bullet, lastFire }, keys = keys@KeysPressed {space}} 
-  | canshoot = ((Bullet (Position xpos (ypos + 20)) bullet 0): bullets, 0 ) 
+shootUpdate secs gstate@GameState { elapsedTime, bullets, player = player@Player {pos = Position {xpos,ypos}, hitbox, fireRate, bullet= thisbull@BulletType{size}, lastFire }, keys = keys@KeysPressed {space}} 
+  | canshoot = ((Bullet (Position xpos (ypos + (sizer hitbox) +(sizer size) )) thisbull 0): bullets, 0 ) 
   | otherwise = (bullets, lastFire + secs )
     where canshoot = space && (lastFire> fireRate)
- 
+          sizer (HitBox xbox ybox) = ybox `quot` 2
                                                          
 
 -- | Updating Position depending on keys pressed

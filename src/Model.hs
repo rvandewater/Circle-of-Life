@@ -85,14 +85,21 @@ instance Ship Enemy where
 enemyColl :: Player -> Enemy -> (Float, Enemy)
 
 enemyColl player@(Player {pos, hitbox, health}) enemy@(Enemy {epos, ehitbox, ehealth})    | collision (hitbox, pos) (ehitbox, epos) = (collDamage, enemy {ehealth= ehealth-collDamage, eHitAnim=1})
+                                                                                       --   | collision (ehitbox, epos) (hitbox, pos)  = (collDamage, enemy {ehealth= ehealth-collDamage, eHitAnim=1})
                                                                                           | otherwise = (0, enemy)
 
 
 collision:: (HitBox, Position) -> (HitBox, Position) -> Bool
-collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = (x1  < x2 + w2) &&
-                                                                          (x1 + w1 > x2-(w2 `quot`2)) &&
-                                                                          (y1 < y2 + h2) &&
-                                                                          (y1 + h1 > y2 - (h2`quot` 2))
+collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = ((x1 - b1) < (x2 + b2)) &&
+                                                                          ((x1 + b1) > (x2 - b2)) &&
+                                                                          ((y1 - v1) < (y2 + v2)) &&
+                                                                          ((y1 + v1)  > (y2 - v2))
+                                                                          
+
+                                                                          where b1 = (w1 `quot` 2)
+                                                                                b2 = (w2 `quot` 2)
+                                                                                v1 = (h1 `quot` 2)
+                                                                                v2 = (h2 `quot` 2)
 -- ********************* CONSTANTS ***************
 initialState :: StdGen -> GameState
 --Starting phase
@@ -140,10 +147,10 @@ screeny :: Int
 screeny = 1080
 
 playerHitBox :: HitBox
-playerHitBox = HitBox 20 20
+playerHitBox = HitBox 40 40
 
 eHitBox :: HitBox
-eHitBox = HitBox 50 50
+eHitBox = HitBox 100 100
 
 beginPos :: Position
 beginPos = Position 0 0

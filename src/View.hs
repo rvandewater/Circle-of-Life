@@ -25,8 +25,8 @@ updateBg bg gs = scale informationScaler 1 (translate 0 (-(mod' (100 * (elapsedT
 
 --Visualizing player
 playerVisual :: GameState -> Picture 
-playerVisual GameState{player = Player {pos = Position{xpos, ypos}, hitbox = HitBox{width},hitAnim}} | (hitAnim>0 ) = translate (fromIntegral xpos) (fromIntegral ypos) (color (makeColor hitAnim (1-hitAnim) 0 1) (thickCircle 10 (fromIntegral width)))
-                                                                                                     | otherwise = translate (fromIntegral xpos) (fromIntegral ypos) (color green (thickCircle 10 (fromIntegral width)))
+playerVisual GameState{player = Player {pos = Position{xpos, ypos}, hitbox = HitBox{width},hitAnim}} | (hitAnim>0 ) = translate (fromIntegral xpos) (fromIntegral ypos) (color (makeColor hitAnim (1-hitAnim) 0 1) (circleSolid 20))
+                                                                                                     | otherwise = translate (fromIntegral xpos) (fromIntegral ypos) (color green (circleSolid 20))
 
 --Visualizing each enemy
 enemyVisual :: GameState -> Picture
