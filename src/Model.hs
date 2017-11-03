@@ -17,12 +17,14 @@ data GameState = GameState {
                  , level :: Int
                  , difficulty :: Int
                  , score :: Int
-                 , randomGen :: StdGen}
+                 , scorelist :: String
+                 , randomGen :: StdGen
+                  }
 
 
 data Bullet = Bullet { position:: Position, kind :: BulletType, frame :: Float}
 
-data GameScreen = MainMenu | GameOver | PlayGame | DifficultySelect | LevelSelect | PausedGame | NoScreen
+data GameScreen = MainMenu | GameOver| WriteScore | ReadScore | PlayGame | DifficultySelect | LevelSelect | PausedGame | HighScores | NoScreen 
   deriving (Eq)
 
 data BulletType =  BulletType { speed:: Move, size :: HitBox, damage :: Float, bulletpic :: Picture}
@@ -113,10 +115,11 @@ initialState = GameState
                          1
                          1
                          0
+                         " "
 
 selectEnemy :: [Enemy]
 --                   position   hitbox  fireRate  bullettype      lastfire  health  model ai  speed killpoints  HitAnim 
-selectEnemy = [Enemy enemySpawn eHitBox (1/0)     standardEBullet 0         5       0     4   2     10          0
+selectEnemy = [Enemy enemySpawn eHitBox (1/0)     standardEBullet 0         20       0     4   2     1000          0
               ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       1     1   2     20          0
               ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       2     2   2     30          0
               ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     3   2     100         0
