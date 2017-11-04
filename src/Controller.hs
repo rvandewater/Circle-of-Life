@@ -57,25 +57,13 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
               
               
               
-enemyKill :: Enemy -> Maybe Enemy
-enemyKill enemy@Enemy{ehealth}                            | ehealth >= 0 = Just enemy
-                                                          | otherwise = Nothing
-enemyScore :: Enemy -> Int
-enemyScore enemy@Enemy{ehealth, killpoints}               | ehealth >= 0 = 0
-                                                          | otherwise = killpoints
+
 
 enemyUpdate :: GameState -> [Enemy] -> ([Enemy],StdGen)
 enemyUpdate gs@GameState{randomGen} enemies | isJust newEn = ((fromJust newEn) : (map positionUpdate enemies),rg)
                                             | otherwise    = (map positionUpdate enemies,rg)
                                       where positionUpdate en@Enemy{epos, ehitbox}  = en{epos = updatePosE (aiMove en gs) epos ehitbox}
                                             (newEn, rg)    = newEnemy randomGen
-enemyCanShoot :: Enemy -> Bool                                            
-enemyCanShoot Enemy{efireRate, eLastFire} | efireRate < eLastFire = True
-                                          | otherwise = False
-
-enemyShoot ::  Float -> Enemy -> (Maybe Bullet,Enemy)
-enemyShoot secs enem@Enemy{eBullet, eLastFire, epos = (Position xp yp), ehitbox= (HitBox x y)} | enemyCanShoot enem = (Just (Bullet (Position xp (yp- (fromIntegral y) `div` 2 )) eBullet 0) , enem{ eLastFire = 0}  )
-                                                                                               | otherwise = (Nothing,  enem{ eLastFire = secs + eLastFire})
 
 aiMove :: Enemy -> GameState -> Move
 aiMove enemy@Enemy{epos = (Position ex ey), eai, espeed} GameState{player = Player{pos = (Position px py)}, bullets}   
@@ -113,17 +101,6 @@ newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 55
                   (location,  rg2)  = randomR (-275,  275 :: Int) rg1           --the new enemy location is random
                   (ai,        rg3)  = randomR (0,       0 :: Int) rg2           --the new enemy has a random ai assigned                            
 
-shipsHit :: Ship k => [Bullet] -> [k] -> ([k],[Bullet] )
-shipsHit bullets = foldl oneship ( [], bullets)                                  where
-                                    oneship :: Ship k => ([k],[Bullet]) -> k -> ([k],[Bullet])
-                                    oneship (shiplist, bullets') ship = (ship':shiplist, bull) 
-                                        where (bull, ship')= shipHit  bullets' ship 
-                                      
-shipHit :: Ship k => [Bullet] -> k -> ([Bullet], k)
-shipHit bullets k 
-  =   ( (filter checker bullets),getDamage totaldam k) 
-          where totaldam = (sum (mapMaybe (isHit k) bullets  ))
-                checker (thisBull@(Bullet pos (BulletType speed size bulletDamage _ ) _)) = (isNothing(isHit k thisBull))
 
 bulletUpdate :: Bullet -> Bullet
 bulletUpdate (Bullet pos (BulletType speed box dmg pic) up) = (Bullet (updatePos speed pos) (BulletType speed box dmg pic) up)

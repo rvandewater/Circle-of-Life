@@ -5,6 +5,8 @@ module Model where
 
 import Graphics.Gloss
 import System.Random
+import Data.Maybe
+import Data.List
 
 -- ********************* DATA TYPES ***************
 data GameState = GameState {
@@ -84,13 +86,39 @@ instance Ship Enemy where
                                                                                              | otherwise = Nothing
   getDamage dmg enemy@(Enemy { ehealth}) | dmg <= 0 = enemy
                                          | otherwise =  enemy {ehealth = ehealth - dmg, eHitAnim = 1}
+
+shipsHit :: Ship k => [Bullet] -> [k] -> ([k],[Bullet] )
+shipsHit bullets = foldl oneship ( [], bullets)                                  where
+                                    oneship :: Ship k => ([k],[Bullet]) -> k -> ([k],[Bullet])
+                                    oneship (shiplist, bullets') ship = (ship':shiplist, bull) 
+                                        where (bull, ship')= shipHit  bullets' ship 
+                                      
+shipHit :: Ship k => [Bullet] -> k -> ([Bullet], k)
+shipHit bullets k 
+  =   ( (filter checker bullets),getDamage totaldam k) 
+          where totaldam = (sum (mapMaybe (isHit k) bullets  ))
+                checker (thisBull@(Bullet pos (BulletType speed size bulletDamage _ ) _)) = (isNothing(isHit k thisBull))
+
 enemyColl :: Player -> Enemy -> (Float, Enemy)
 
 enemyColl player@(Player {pos, hitbox, health}) enemy@(Enemy {epos, ehitbox, ehealth})    | collision (hitbox, pos) (ehitbox, epos) = (collDamage, enemy {ehealth= ehealth-collDamage, eHitAnim=1})
-                                                                                       --   | collision (ehitbox, epos) (hitbox, pos)  = (collDamage, enemy {ehealth= ehealth-collDamage, eHitAnim=1})
                                                                                           | otherwise = (0, enemy)
 
+enemyKill :: Enemy -> Maybe Enemy
+enemyKill enemy@Enemy{ehealth}                            | ehealth >= 0 = Just enemy
+                                                          | otherwise = Nothing
+enemyScore :: Enemy -> Int
+enemyScore enemy@Enemy{ehealth, killpoints}               | ehealth >= 0 = 0
+                                                          | otherwise = killpoints
 
+enemyShoot ::  Float -> Enemy -> (Maybe Bullet,Enemy)
+enemyShoot secs enem@Enemy{eBullet, eLastFire, epos = (Position xp yp), ehitbox= (HitBox x y)} | enemyCanShoot enem = (Just (Bullet (Position xp (yp- (fromIntegral y) `div` 2 )) eBullet 0) , enem{ eLastFire = 0}  )
+                                                                                               | otherwise = (Nothing,  enem{ eLastFire = secs + eLastFire})
+
+enemyCanShoot :: Enemy -> Bool                                            
+enemyCanShoot Enemy{efireRate, eLastFire} | efireRate < eLastFire = True
+                                          | otherwise = False
+                                          
 collision:: (HitBox, Position) -> (HitBox, Position) -> Bool
 collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = ((x1 - b1) < (x2 + b2)) &&
                                                                           ((x1 + b1) > (x2 - b2)) &&
@@ -102,6 +130,7 @@ collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = ((x1 -
                                                                                 b2 = (w2 `quot` 2)
                                                                                 v1 = (h1 `quot` 2)
                                                                                 v2 = (h2 `quot` 2)
+                              
 -- ********************* CONSTANTS ***************
 initialState :: StdGen -> GameState
 --Starting phase

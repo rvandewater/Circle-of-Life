@@ -6,7 +6,7 @@ import Graphics.Gloss
 import Model
 import Data.Fixed
 import Data.List.Split
-
+import Data.List
 --Generate display
 view :: Picture -> GameState -> IO Picture
 view bg gs@GameState{screen,score, scorelist}   | screen == MainMenu = return (pictures[(scale 0.5 0.5(translate (-fromIntegral screenx) 0 (color green (Text "Circle of life")))), (translate 0 (-200) (color green (thickCircle 10 20)))])
@@ -36,7 +36,9 @@ highScoreParse scores = pictures [(translate 0 (400) (pictures (translated))), (
                         where   translated = map finalpics (zip [0..] pics)
                                 finalpics (y, pic) =  (translate (-300) (y*(-100))) pic 
                                 pics = map (scale 0.5 0.5) (map (color green) (map Text scorelist))
+                                
                                 scorelist = splitOn " " scores
+                                --(sort(map (\x -> read x:: Int) scorelist))
 --Visualizing each enemy
 enemyVisual :: GameState -> Picture
 enemyVisual GameState{enemies} = pictures (map enemyPic enemies)
