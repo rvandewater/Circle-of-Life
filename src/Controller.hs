@@ -12,10 +12,10 @@ import Data.List
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate@GameState { screen, score}                                                     | screen == PausedGame || screen == MainMenu || screen == DifficultySelect || screen == LevelSelect || screen==GameOver || screen == HighScores = return gstate
-                                                                                                | screen == WriteScore = 
+step secs gstate@GameState { screen, score, plrname, level, difficulty }                        | screen == PausedGame || screen == MainMenu || screen == DifficultySelect || screen == LevelSelect || screen==GameOver || screen == HighScores || screen == WriteScore False = return gstate
+                                                                                                | screen == WriteScore True = 
                                                                                                                         do  
-                                                                                                                            appendFile "highscore"  ((show score)++ " ") 
+                                                                                                                            appendFile "highscore"  (plrname ++ " " ++ (show score) ++ " " ++ (show level) ++ " " ++(show difficulty)++ "~"   ) 
                                                                                                                             return gstate{screen = GameOver}
                                                                                                 | screen == ReadScore =  do scores <- readFile "highscore"
                                                                                                                             return gstate {scorelist = scores, screen = HighScores}
@@ -40,14 +40,14 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
               (bulletsover, plr@Player {health, hitAnim} )        = shipHit bulletsshot player                                     -- Checks if the ship hits one of the bullets
               (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemsaftershoot                                  -- Checks if one of the ships hits one of the bullets
               boundcheck (Bullet pos (BulletType speed box dmg _) _ ) = not (outOfBounds pos box)                                 -- Checks if the bullet is not out of bounds
-              killscore                                           = sum (map enemyScore enemiesover)                              -- Adds score to player score if enemy died
+              killscore                                           = sum (map enemyScore updatedenemies)                              -- Adds score to player score if enemy died
               (updatedenemies, nrg)                               = enemyUpdate gstate (mapMaybe enemyKill enemiesover)         -- Updates the killed enemies after collision check
               enemycollover                                       = map snd collisioncheck                                        -- Enemies after collision check
               plrcolldamage                                       = sum (map fst collisioncheck)                                  -- Damage done to the player in collision check
               collisioncheck                                      = (map (enemyColl player) updatedenemies)                          -- Collision check of enemies
               bulletAniUp bullet@Bullet{frame}                    | frame < 2 = bullet {frame = frame + secs}                     -- Bullet animation frame update
                                                                   | otherwise = bullet {frame = 0}
-              screenChecker      scr                             | health <= 0 = WriteScore
+              screenChecker      scr                             | health <= 0 = WriteScore False
                                                                  | otherwise = scr
               hitAnimReset               frm                     | plrcolldamage > 0 = 1
                                                                  | frm < 0 = 0
@@ -128,8 +128,14 @@ input e gstate@GameState{screen = LevelSelect } = return (levelUpdate e gstate)
 input e gstate@GameState{screen = PlayGame}  = return (playGameUpdate e gstate)
 input e gstate@GameState{screen = PausedGame}  = return (pausedGameUpdate e gstate)
 input e gstate@GameState{screen = GameOver} = return (gameOverUpdate e gstate)
+input e gstate@GameState{screen = WriteScore False} = return (writeScoreUpdate e gstate)
 input e gstate@GameState{screen = HighScores} = return (highScoreUpdate e gstate)
 input e gstate@game  = return gstate
+
+writeScoreUpdate :: Event -> GameState -> GameState
+writeScoreUpdate (EventKey (SpecialKey KeyEnter) Up _ _)  gstate@GameState{screen} = gstate{screen = WriteScore True}
+writeScoreUpdate (EventKey (Char x)  Down _ _) gst@GameState{plrname} = gst{plrname =  plrname ++ [x]}
+writeScoreUpdate _ gstate = gstate
 
 pausedGameUpdate :: Event -> GameState -> GameState
 pausedGameUpdate (EventKey (Char 'p')  Down _ _) gstate@GameState{screen} = gstate{screen = PlayGame} 
