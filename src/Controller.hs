@@ -60,10 +60,10 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
 
 
 enemyUpdate :: GameState -> [Enemy] -> ([Enemy],StdGen)
-enemyUpdate gs@GameState{randomGen} enemies | isJust newEn = ((fromJust newEn) : (map positionUpdate enemies),rg)
-                                            | otherwise    = (map positionUpdate enemies,rg)
-                                      where positionUpdate en@Enemy{epos, ehitbox}  = en{epos = updatePosE (aiMove en gs) epos ehitbox}
-                                            (newEn, rg)    = newEnemy randomGen
+enemyUpdate gs enemies  | isJust newEn = ((fromJust newEn) : (map positionUpdate enemies),rg)
+                        | otherwise    = (map positionUpdate enemies,rg)
+                              where positionUpdate en@Enemy{epos, ehitbox}  = en{epos = updatePosE (aiMove en gs) epos ehitbox}
+                                    (newEn, rg)    = newEnemy gs
 
 aiMove :: Enemy -> GameState -> Move
 aiMove enemy@Enemy{epos = (Position ex ey), eai, espeed} GameState{player = Player{pos = (Position px py)}, bullets}   
@@ -94,12 +94,12 @@ toPlayer ex px espeed | ex < px - 1 = espeed
                       | ex > px + 1 = -espeed - espeed
                       | otherwise = 0
 
-newEnemy :: StdGen -> (Maybe Enemy,StdGen) 
-newEnemy rg | number == 0 = (Just (selectEnemy!!ai) {epos = Position location 550},rg3)
-            | otherwise   = (Nothing,rg3)
-            where (number,    rg1)  = randomR (0,     100 :: Int) rg            --maybe a new enemy spawns
+newEnemy :: GameState -> (Maybe Enemy,StdGen) 
+newEnemy gs@GameState{difficulty, randomGen}    | number == 0 = (Just (selectEnemy difficulty enemytype) {epos = Position location 550},rg3)
+                                                | otherwise   = (Nothing,rg3)
+            where (number,    rg1)  = randomR (0,     100 :: Int) randomGen     --maybe a new enemy spawns
                   (location,  rg2)  = randomR (-275,  275 :: Int) rg1           --the new enemy location is random
-                  (ai,        rg3)  = randomR (0,       0 :: Int) rg2           --the new enemy has a random ai assigned                            
+                  (enemytype, rg3)  = randomR (0,       0 :: Int) rg2           --the new enemy has a random type assigned                            
 
 
 bulletUpdate :: Bullet -> Bullet

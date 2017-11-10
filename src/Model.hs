@@ -146,13 +146,13 @@ initialState = GameState
                          0
                          " "
 
-selectEnemy :: [Enemy]
+selectEnemy :: Int -> Int -> Enemy
 --                   position   hitbox  fireRate  bullettype      lastfire  health  model ai  speed killpoints  HitAnim 
-selectEnemy = [Enemy enemySpawn eHitBox (1/0)     standardEBullet 0         20       0     4   2     1000          0
-              ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       1     1   2     20          0
-              ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       2     2   2     30          0
-              ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     3   2     100         0
-              ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     4   2     1           0]
+selectEnemy d sel = [Enemy enemySpawn eHitBox (1/0)     standardEBullet 0         20       0     4   2    (1000*d)       0
+                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       1     1   2     (20*d)          0
+                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       2     2   2     (30*d)          0
+                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     3   2     (100*d )        0
+                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     4   2     (1*d)           0]!!sel
 
 standardBullet :: BulletType
 standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage (color red (circleSolid 5)) )
