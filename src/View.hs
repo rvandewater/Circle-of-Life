@@ -30,11 +30,17 @@ updateBg bg gs = scale informationScaler 1 (translate 0 (-(mod' (100 * (elapsedT
 
 mainMenuVisual :: GameState -> Picture
 mainMenuVisual GameState{runTime} = (pictures[(scale 0.7 0.7(translate (-400) 600 (color green (Text "Circle of life")))), 
-                                scale 2 2 (translate (15) (225) (color green (thickCircle 10 20))), (flash (scale 0.5 0.5 (translate (-700) (-200) (color green( text "Press Space to Start")))) runTime), 
+                                scale 2 2 (translate (15) (225) (color (colorFlow runTime) (thickCircle 10 20))), (flash (scale 0.5 0.5 (translate (-700) (-200) (color green( text "Press Space to Start")))) runTime), 
                                 (scale 0.4 0.4 (translate (-900) (-850) (color green( text "Press Enter for High Scores")))) ])
+
 flash :: Picture -> Float -> Picture
 flash k time | (ceiling time `mod` 2) == 0 = blank
              | otherwise = k
+
+colorFlow :: Float -> Color        
+colorFlow time | ( mod' time 1)< 0.5 = (makeColor (1 - ( mod' time 1)) ( mod' time 1 ) (1 - ( mod' time 1)) 1)
+               | otherwise = (makeColor ( mod' time 1 ) (1 - ( mod' time 1)) ( mod' time 1 ) 1)
+
 --Visualizing player
 playerVisual :: GameState -> Picture 
 playerVisual GameState{player = Player {pos = Position{xpos, ypos}, hitbox = HitBox{width},hitAnim}} | (hitAnim>0 ) = translate (fromIntegral xpos) (fromIntegral ypos) (color (makeColor hitAnim (1-hitAnim) 0 1) (circleSolid 20))

@@ -101,11 +101,11 @@ toPlayer ex px espeed | ex < px - 1 = espeed
                       | otherwise = 0
 
 newEnemy :: GameState -> (Maybe Enemy,StdGen) 
-newEnemy gs@GameState{difficulty, randomGen}    | number == 0 = (Just (selectEnemy difficulty enemytype) {epos = Position location 550},rg3)
-                                                | otherwise   = (Nothing,rg3)
-            where (number,    rg1)  = randomR (0,     (250 - d*50) :: Int) randomGen     --maybe a new enemy spawns
+newEnemy gs@GameState{difficulty, randomGen, level}    | number == 0 = (Just (selectEnemy difficulty enemytype) {epos = Position location 550},rg3)
+                                                       | otherwise   = (Nothing,rg3)
+            where (number,    rg1)  = randomR (0,     (250 - difficulty*50) :: Int) randomGen     --maybe a new enemy spawns
                   (location,  rg2)  = randomR (-250,  250 :: Int) rg1                    --the new enemy location is random
-                  (enemytype, rg3)  = randomR (0,     (1+l) :: Int) rg2                  --the new enemy has a random type assigned                            
+                  (enemytype, rg3)  = randomR (0,     (1+level) :: Int) rg2                  --the new enemy has a random type assigned                            
 
 bulletUpdate :: Bullet -> Bullet
 bulletUpdate (Bullet pos (BulletType speed box dmg pic) up) = (Bullet (updatePos speed pos) (BulletType speed box dmg pic) up)
