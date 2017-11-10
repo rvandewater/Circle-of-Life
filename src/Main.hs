@@ -11,7 +11,7 @@ module Main where
     main = do   bg <- loadBMP "bg2.bmp"
                 rg <- getStdGen
                 playIO (InWindow "Circle of Life" (screenx + informationBar, screeny) (0, 0)) -- Or FullScreen
-                        black            -- Background color
+                        (makeColor 0.5 0.5 0.5 1)            -- Background color
                         60               -- Frames per second
                         (initialState rg)-- Initial state
                         (view bg)        -- View function
