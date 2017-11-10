@@ -49,23 +49,19 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
               collisioncheck                                      = (map (enemyColl player) updatedenemies)             -- Collision check of enemies          
               bulletAniUp bullet@Bullet{frame}                    | frame < 2 = bullet {frame = frame + secs}                     -- Bullet animation frame update
                                                                   | otherwise = bullet {frame = 0}
-              screenChecker      scr                             | health <= 0 = WriteScore False
-                                                                 | otherwise = scr
-              hitAnimReset               frm                     | plrcolldamage > 0 = 1
-                                                                 | frm < 0 = 0
-                                                                 | otherwise = frm - secs
-              enemAnimReset  enem@Enemy{eHitAnim, killAnim}      | killAnim > 0 = enem{killAnim= killAnim - secs}
-                                                                 | eHitAnim > 0 = enem{eHitAnim = eHitAnim-secs}
-                                                                 | eHitAnim <= 0 = enem{eHitAnim = 0}
+              screenChecker      scr                              | health <= 0 = WriteScore False
+                                                                  | otherwise = scr
+              hitAnimReset               frm                      | plrcolldamage > 0 = 1
+                                                                  | frm < 0 = 0
+                                                                  | otherwise = frm - secs
+              enemAnimReset  enem@Enemy{eHitAnim, killAnim}       | killAnim > 0 = enem{killAnim= killAnim - secs}
+                                                                  | eHitAnim > 0 = enem{eHitAnim = eHitAnim-secs}
+                                                                  | eHitAnim <= 0 = enem{eHitAnim = 0}
               invinc                                              | plrcolldamage> 0 =  1 
                                                                   | otherwise = invincibility    
-              playerinvinc                                       | invinc > 0 = invinc - secs                                            
-                                                                 | invinc <= 0 = 0                        
-              
-              
-              
-
-
+              playerinvinc                                        | invinc > 0 = invinc - secs                                            
+                                                                  | invinc <= 0 = 0                        
+                       
 enemyUpdate :: GameState -> [Enemy] -> ([Enemy],StdGen)
 enemyUpdate gs enemies  | isJust newEn = ((fromJust newEn) : (map positionUpdate enemies),rg)
                         | otherwise    = (map positionUpdate enemies,rg)
@@ -107,9 +103,9 @@ toPlayer ex px espeed | ex < px - 1 = espeed
 newEnemy :: GameState -> (Maybe Enemy,StdGen) 
 newEnemy gs@GameState{difficulty, randomGen}    | number == 0 = (Just (selectEnemy difficulty enemytype) {epos = Position location 550},rg3)
                                                 | otherwise   = (Nothing,rg3)
-            where (number,    rg1)  = randomR (0,     100 :: Int) randomGen     --maybe a new enemy spawns
-                  (location,  rg2)  = randomR (-275,  275 :: Int) rg1           --the new enemy location is random
-                  (enemytype, rg3)  = randomR (0,       4 :: Int) rg2           --the new enemy has a random type assigned                            
+            where (number,    rg1)  = randomR (0,     (250 - d*50) :: Int) randomGen     --maybe a new enemy spawns
+                  (location,  rg2)  = randomR (-250,  250 :: Int) rg1                    --the new enemy location is random
+                  (enemytype, rg3)  = randomR (0,     (1+l) :: Int) rg2                  --the new enemy has a random type assigned                            
 
 bulletUpdate :: Bullet -> Bullet
 bulletUpdate (Bullet pos (BulletType speed box dmg pic) up) = (Bullet (updatePos speed pos) (BulletType speed box dmg pic) up)
