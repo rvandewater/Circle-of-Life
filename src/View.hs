@@ -47,13 +47,13 @@ enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _  ai _ _ eanim killanim
                                                                                          | otherwise = translate (fromIntegral xpos) (fromIntegral ypos) ( (getModel ai))
 
 getModel :: Int -> Picture
-getModel m | m == 0             = (color blue     (rectangleSolid 50 50))
-           | m == 1             = (color white    (rectangleSolid 50 50))
-           | m == 2             = (color yellow   (rectangleSolid 50 50))
-           | m == 3             = (color red      (rectangleSolid 50 50))
-           | m == 4             = (color black    (rectangleSolid 50 50))
-           | otherwise          = (color black    (rectangleSolid 50 50))
-
+getModel m | m == 0             = color white (rectangleSolid 50 50)
+           | m == 1             = rotate 45 (color blue (rectangleSolid 50 50))
+           | m == 2             = pictures [color yellow (rectangleSolid 50 50), rotate 45 (color yellow (rectangleSolid 50 50))]
+           | m == 3             = color red (triangle 50)
+           | m == 4             = pictures [color cyan (translate 0 20 (rotate 180 (triangle 50))),color black (translate 0 (-20) (triangle 50))]
+           | otherwise          = (color black (rectangleSolid 50 50))
+                        where triangle s = polygon [ (0,0), (s / 2, s), ((-s) / 2,s), (0,0) ]
 --Visualizing bullets
 bulletVisual :: GameState -> Picture 
 bulletVisual GameState {bullets} = pictures (map bulletsDraw bullets)

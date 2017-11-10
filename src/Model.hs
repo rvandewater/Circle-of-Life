@@ -142,7 +142,7 @@ initialState :: StdGen -> GameState
 initialState = GameState 
                          0 
                          MainMenu
-                         (Player beginPos playerHitBox 0.5 standardBullet 0 100 0) 
+                         (Player beginPos playerHitBox 0.5 standardBullet 0 1000 0) 
                          (KeysPressed False False False False False) 
                          [] 
                          []
@@ -154,17 +154,24 @@ initialState = GameState
 
 selectEnemy :: Int -> Int -> Enemy
 --                         position   hitbox           fireRate  bullettype      lastfire  health  ai  speed killpoints  HitAnim DeathAnim
-selectEnemy d sel = [Enemy enemySpawn (HitBox 50 50)   1         standardEBullet 0         5       0   2     (1000*d)    0       0
-                    ,Enemy enemySpawn (HitBox 50 50)   1         standardEBullet 0         5       1   2     (20*d)      0       0
-                    ,Enemy enemySpawn (HitBox 50 50)   1         standardEBullet 0         5       2   2     (30*d)      0       0
-                    ,Enemy enemySpawn (HitBox 50 50)   1         standardEBullet 0         5       3   2     (100*d )    0       0
-                    ,Enemy enemySpawn (HitBox 50 50)   1         standardEBullet 0         5       4   2     (1*d)       0       0]!!sel
+selectEnemy d sel = [Enemy enemySpawn (HitBox 50 50)   1         standardEBullet 0         5       0   2     (5*d)      0       0
+                    ,Enemy enemySpawn (HitBox 60 60)   4         heavyEBullet    3         15      1   2     (20*d)      0       0
+                    ,Enemy enemySpawn (HitBox 60 60)   1         standardEBullet 0         5       2   2     (10*d)      0       0
+                    ,Enemy enemySpawn (HitBox 50 50)   1         standardEBullet 0         5       3   2     (10*d )     0       0
+                    ,Enemy enemySpawn (HitBox 50 60)   1         standardEBullet 0         5       4   2     (10*d)      0       0]!!sel
 
 standardBullet :: BulletType
 standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage (color red (circleSolid 5)) )
 
 standardEBullet :: BulletType
-standardEBullet = (BulletType (Move 0 (-10)) bulletHitBox bulletDamage (color red (circleSolid 5)) )
+standardEBullet = (BulletType (Move 0 (-10)) bulletHitBox bulletDamage (color (light red) (circleSolid 5)))
+
+heavyEBullet :: BulletType
+heavyEBullet = (BulletType (Move 0 (-5)) bulletHitBox (bulletDamage + 20) (color (dark(dark red)) (circleSolid 10)) )
+
+fasterEBullet :: BulletType
+fasterEBullet = (BulletType (Move 0 (-15)) bulletHitBox bulletDamage (color magenta (circleSolid 5)) )
+
 --moventSpeed of the player
 movementSpeed :: Int
 movementSpeed = 5
