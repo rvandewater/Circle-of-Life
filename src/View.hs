@@ -36,8 +36,7 @@ highScoreParse scores = pictures [(translate 0 (400) (pictures (translated))), (
                         where   translated = map finalpics (zip [0..] pics)
                                 finalpics (y, pic) =  (translate (-300) (y*(-100))) pic 
                                 pics = map (scale 0.5 0.5) (map (color green) (map Text scorelist))
-                                
-                                scorelist = splitOn " " scores
+                                scorelist = splitOn "~" scores
                                 --(sort(map (\x -> read x:: Int) scorelist))
 --Visualizing each enemy
 enemyVisual :: GameState -> Picture

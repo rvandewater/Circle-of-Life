@@ -19,6 +19,7 @@ data GameState = GameState {
                  , level :: Int
                  , difficulty :: Int
                  , score :: Int
+                 , plrname :: String
                  , scorelist :: String
                  , randomGen :: StdGen
                   }
@@ -26,7 +27,7 @@ data GameState = GameState {
 
 data Bullet = Bullet { position:: Position, kind :: BulletType, frame :: Float}
 
-data GameScreen = MainMenu | GameOver| WriteScore | ReadScore | PlayGame | DifficultySelect | LevelSelect | PausedGame | HighScores | NoScreen 
+data GameScreen = MainMenu | GameOver| WriteScore Bool | ReadScore | PlayGame | DifficultySelect | LevelSelect | PausedGame | HighScores | NoScreen 
   deriving (Eq)
 
 data BulletType =  BulletType { speed:: Move, size :: HitBox, damage :: Float, bulletpic :: Picture}
@@ -111,8 +112,9 @@ enemyKill enemy@Enemy{ehealth, killAnim}                            | ehealth > 
                                                                     | killAnim < 0 = Nothing
                                                                     | otherwise = Just enemy
 enemyScore :: Enemy -> Int
-enemyScore enemy@Enemy{ehealth, killpoints}               | ehealth >= 0 = 0
-                                                          | otherwise = killpoints
+enemyScore enemy@Enemy{ehealth, killpoints, killAnim}               | ehealth > 0 = 0
+                                                                    | killAnim == 1 = killpoints
+                                                                    | otherwise = 0
 
 enemyShoot ::  Float -> Enemy -> (Maybe Bullet,Enemy)
 enemyShoot secs enem@Enemy{eBullet, eLastFire, epos = (Position xp yp), ehitbox= (HitBox x y)} | enemyCanShoot enem = (Just (Bullet (Position xp (yp- (fromIntegral y) `div` 2 )) eBullet 0) , enem{ eLastFire = 0}  )
@@ -148,6 +150,7 @@ initialState = GameState
                          1
                          0
                          " "
+                         "default"
 
 selectEnemy :: Int -> Int -> Enemy
 --                   position   hitbox  fireRate  bullettype      lastfire  health  model ai  speed killpoints  HitAnim 
