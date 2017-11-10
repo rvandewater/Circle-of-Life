@@ -34,7 +34,7 @@ data BulletType =  BulletType { speed:: Move, size :: HitBox, damage :: Float, b
 
 data HitBox = HitBox { width :: Int, height :: Int}   
 
-data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float, hitAnim :: Float }
+data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float, hitAnim :: Float, invincibility :: Float }
 
 data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float , model :: Int, eai :: Int, espeed :: Int, killpoints :: Int, eHitAnim :: Float, killAnim :: Float }
 
@@ -142,7 +142,7 @@ initialState :: StdGen -> GameState
 initialState = GameState 
                          0 
                          MainMenu
-                         (Player beginPos playerHitBox 0.5 standardBullet 0 100 0) 
+                         (Player beginPos playerHitBox 0.5 standardBullet 0 100 0 0) 
                          (KeysPressed False False False False False) 
                          [] 
                          []

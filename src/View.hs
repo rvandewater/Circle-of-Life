@@ -9,16 +9,18 @@ import Data.List.Split
 import Data.List
 --Generate display
 view :: Picture -> GameState -> IO Picture
-view bg gs@GameState{screen,score, scorelist}   | screen == MainMenu = return (pictures[(scale 0.5 0.5(translate (-fromIntegral screenx) 0 (color green (Text "Circle of life")))), (translate 0 (-200) (color green (thickCircle 10 20)))])
-                                                | screen == GameOver      = return (pictures [translate (-200) 0 (color green (Text "Game")), translate (-200) (-200) (color green (Text "Over")),  translate (-200) (-400) (color green (Text (show score)))])
-                                                | screen == PausedGame  = return (translate (-200) 0 (color green (Text "Paused")))
-                                                | screen == DifficultySelect  = return (scale 0.5 0.5 (pictures [ (translate (- ( fromIntegral screenx)) 0 (color green (Text "Select your difficulty"))), translate 0 (-200) (color green (Text "1")),
-                                                        translate 0 (-310) (color green (Text "2")), translate 0 (-420) (color green (Text "3")) ]))
-                                                | screen == LevelSelect  = return (scale 0.5 0.5 (pictures [ (translate (- ( fromIntegral screenx)) 0 (color green (Text "Select your level"))), translate 0 (-200) (color green (Text "1")),
-                                                        translate 0 (-310) (color green (Text "2")), translate 0 (-420) (color green (Text "3")) ]))
-                                                | screen == HighScores = return (highScoreParse scorelist)
-                                                | screen == PlayGame = return (viewPure bg gs)
-                                                | otherwise = return blank
+view bg gs@GameState{screen,score, scorelist, plrname}  | screen == MainMenu = return (pictures[(scale 0.5 0.5(translate (-fromIntegral screenx) 0 (color green (Text "Circle of life")))), (translate 0 (-200) (color green (thickCircle 10 20)))])
+                                                        | screen == GameOver      = return (pictures [translate (-350) 400 (color green (Text "Game Over")),  translate (-200) 0 (color green (Text "Score:")), scale 1.5 1.5(translate (-100) (-200) (color green (Text (show score))))])
+                                                        | screen == PausedGame  = return (translate (-200) 0 (color green (Text "Paused")))
+                                                        | screen == DifficultySelect  = return (scale 0.5 0.5 (pictures [ (translate (- ( fromIntegral screenx)) 0 (color green (Text "Select your difficulty"))), translate 0 (-200) (color green (Text "1")),
+                                                                translate 0 (-310) (color green (Text "2")), translate 0 (-420) (color green (Text "3")) ]))
+                                                        | screen == LevelSelect  = return (scale 0.5 0.5 (pictures [ (translate (- ( fromIntegral screenx)) 0 (color green (Text "Select your level"))), translate 0 (-200) (color green (Text "1")),
+                                                                translate 0 (-310) (color green (Text "2")), translate 0 (-420) (color green (Text "3")) ]))
+                                                        | screen == HighScores = return (highScoreParse scorelist)
+                                                        | screen == PlayGame = return (viewPure bg gs)
+                                                        | screen == (WriteScore False ) = return (pictures [(translate (-200) 0 (color green (Text plrname))) , ( scale 0.5 0.5 (translate (-600) (800) (color green( text "Write your name")))),
+                                                                 (scale 0.5 0.5 (translate (-700) (-800) (color green( text "Press Enter to finish")))) ])
+                                                        | otherwise = return blank
 
 
 viewPure :: Picture -> GameState -> Picture
@@ -34,7 +36,7 @@ playerVisual GameState{player = Player {pos = Position{xpos, ypos}, hitbox = Hit
 highScoreParse :: String -> Picture
 highScoreParse scores = pictures [(translate 0 (400) (pictures (translated))), ( (scale 0.5 0.5) (translate (-300) (800) (color green( text "High scores"))))]
                         where   translated = map finalpics (zip [0..] pics)
-                                finalpics (y, pic) =  (translate (-300) (y*(-100))) pic 
+                                finalpics (y, pic) =  (translate (-300) (y*(-100)-100)) pic 
                                 pics = map (scale 0.5 0.5) (map (color green) (map Text scorelist))
                                 scorelist = splitOn "~" scores
                                 --(sort(map (\x -> read x:: Int) scorelist))

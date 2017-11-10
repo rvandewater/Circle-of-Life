@@ -22,10 +22,10 @@ step secs gstate@GameState { screen, score, plrname, level, difficulty }        
                                                                                                 | otherwise = gameUpdate secs gstate
 
 gameUpdate :: Float -> GameState -> IO GameState
-gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate, bullet}, screen, keys, bullets, enemies, randomGen, score} =
+gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate, bullet, invincibility}, screen, keys, bullets, enemies, randomGen, score} =
      return $ gstate { 
                                           elapsedTime = elapsedTime gstate + secs, 
-                                          player      = plr {pos = movementUpdate keys pos, lastFire = fire, health = health - plrcolldamage, hitAnim = hitAnimReset hitAnim},
+                                          player      = plr {pos = movementUpdate keys pos, lastFire = fire, health = health - plrcolldamage, hitAnim = hitAnimReset hitAnim, invincibility = playerinvinc},
                                           bullets     = map bulletAniUp (filter boundcheck (map bulletUpdate bulletsafterenemies)) , 
                                           screen      = screenChecker screen, 
                                           enemies     = map enemAnimReset(enemycollover),
@@ -42,9 +42,11 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
               boundcheck (Bullet pos (BulletType speed box dmg _) _ ) = not (outOfBounds pos box)                                 -- Checks if the bullet is not out of bounds
               killscore                                           = sum (map enemyScore updatedenemies)                              -- Adds score to player score if enemy died
               (updatedenemies, nrg)                               = enemyUpdate gstate (mapMaybe enemyKill enemiesover)         -- Updates the killed enemies after collision check
-              enemycollover                                       = map snd collisioncheck                                        -- Enemies after collision check
-              plrcolldamage                                       = sum (map fst collisioncheck)                                  -- Damage done to the player in collision check
-              collisioncheck                                      = (map (enemyColl player) updatedenemies)                          -- Collision check of enemies
+              enemycollover                                       | invincibility == 0 = map snd collisioncheck   
+                                                                  | otherwise = updatedenemies                                     -- Enemies after collision check
+              (plrcolldamage)                                     | invincibility == 0 = (sum (map fst collisioncheck))  -- Damage done to the player in collision check
+                                                                  | otherwise = 0
+              collisioncheck                                      = (map (enemyColl player) updatedenemies)             -- Collision check of enemies          
               bulletAniUp bullet@Bullet{frame}                    | frame < 2 = bullet {frame = frame + secs}                     -- Bullet animation frame update
                                                                   | otherwise = bullet {frame = 0}
               screenChecker      scr                             | health <= 0 = WriteScore False
@@ -55,6 +57,10 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
               enemAnimReset  enem@Enemy{eHitAnim, killAnim}      | killAnim > 0 = enem{killAnim= killAnim - secs}
                                                                  | eHitAnim > 0 = enem{eHitAnim = eHitAnim-secs}
                                                                  | eHitAnim <= 0 = enem{eHitAnim = 0}
+              invinc                                              | plrcolldamage> 0 =  1 
+                                                                  | otherwise = invincibility    
+              playerinvinc                                       | invinc > 0 = invinc - secs                                            
+                                                                 | invinc <= 0 = 0                        
               
               
               
@@ -172,8 +178,8 @@ mainMenuUpdate (EventKey (SpecialKey KeyEnter) Up _ _)  gstate@GameState{screen}
 mainMenuUpdate _ gstate = gstate 
 
 gameOverUpdate :: Event -> GameState -> GameState
-gameOverUpdate (EventKey (Char 'r') Down _ _) GameState{randomGen} = initialState randomGen
-gameOverUpdate _ gstate = gstate 
+gameOverUpdate _ GameState{randomGen} = initialState randomGen
+
 
 difficultyUpdate :: Event -> GameState -> GameState
 difficultyUpdate (EventKey (Char '1') Down _ _) gstate@GameState{screen} = gstate{screen = LevelSelect, difficulty = 1}
