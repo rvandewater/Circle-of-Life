@@ -9,8 +9,7 @@ import Data.List.Split
 import Data.List
 --Generate display
 view :: Picture -> GameState -> IO Picture
-view bg gs@GameState{screen,score, scorelist, plrname}  | screen == MainMenu = return (pictures[(scale 0.7 0.7(translate (-400) 600 (color green (Text "Circle of life")))), scale 2 2 (translate (15) (225) (color green (thickCircle 10 20))), (scale 0.5 0.5 (translate (-700) (-200) (color green( text "Press Space to Start")))), 
-                                                                (scale 0.4 0.4 (translate (-900) (-850) (color green( text "Press Enter for High Scores")))) ])
+view bg gs@GameState{screen,score, scorelist, plrname}  | screen == MainMenu = return (mainMenuVisual gs)
                                                         | screen == GameOver      = return (pictures [translate (-350) 400 (color green (Text "Game Over")),  translate (-200) 0 (color green (Text "Score:")), scale 1.5 1.5(translate (-50) (-200) (color green (Text (show score))))])
                                                         | screen == PausedGame  = return (translate (-200) 0 (color green (Text "Paused")))
                                                         | screen == DifficultySelect  = return (scale 0.5 0.5 (pictures [ (translate (- ( fromIntegral screenx)) 0 (color green (Text "Select your difficulty"))), translate 0 (-200) (color green (Text "1")),
@@ -29,6 +28,13 @@ viewPure bg gstate@GameState{score, screen}             = pictures [updateBg bg 
 updateBg :: Picture -> GameState -> Picture
 updateBg bg gs = scale informationScaler 1 (translate 0 (-(mod' (100 * (elapsedTime gs)) 1440) + 720) bg)
 
+mainMenuVisual :: GameState -> Picture
+mainMenuVisual GameState{runTime} = (pictures[(scale 0.7 0.7(translate (-400) 600 (color green (Text "Circle of life")))), 
+                                scale 2 2 (translate (15) (225) (color green (thickCircle 10 20))), (flash (scale 0.5 0.5 (translate (-700) (-200) (color green( text "Press Space to Start")))) runTime), 
+                                (scale 0.4 0.4 (translate (-900) (-850) (color green( text "Press Enter for High Scores")))) ])
+flash :: Picture -> Float -> Picture
+flash k time | (ceiling time `mod` 2) == 0 = blank
+             | otherwise = k
 --Visualizing player
 playerVisual :: GameState -> Picture 
 playerVisual GameState{player = Player {pos = Position{xpos, ypos}, hitbox = HitBox{width},hitAnim}} | (hitAnim>0 ) = translate (fromIntegral xpos) (fromIntegral ypos) (color (makeColor hitAnim (1-hitAnim) 0 1) (circleSolid 20))
@@ -72,8 +78,9 @@ speedLines secs (Move mx my) (xpos, ypos) = (color white (line [ (fromIntegral x
         
 
 informationVisual ::  GameState -> Picture
-informationVisual gstate = pictures[ (translate (-  (((fromIntegral informationBar)/2) + fromIntegral screenx/2)) 0 (rotate 90(scale 0.5 0.5(color red (text (show (health(player gstate)))))))), 
-     (translate (fromIntegral screenx/2) 0 (rotate 90( scale 0.5 0.5 (color red (text (show (score gstate)))))))]
+informationVisual gstate = pictures[(translate  0 ((fromIntegral screeny/2)- 50) (color (makeColor 0.5 0.5 0.5 0.5) (rectangleSolid (fromIntegral screenx+informationScaler) 100))),
+         (translate (-  ( fromIntegral screenx/2)) ((fromIntegral screeny/2)- 100) (scale 0.4 0.4(color red (text (show (health(player gstate))++" HP"))))), 
+     (translate ( (fromIntegral screenx/2) -300) ((fromIntegral screeny/2)- 100) ( scale 0.4 0.4 (color red (text ("Score "++ show (score gstate))))))]
 
 
 
