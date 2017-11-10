@@ -74,13 +74,16 @@ enemyUpdate gs enemies  | isJust newEn = ((fromJust newEn) : (map positionUpdate
 
 aiMove :: Enemy -> GameState -> Move
 aiMove enemy@Enemy{epos = (Position ex ey), eai, espeed} GameState{player = Player{pos = (Position px py)}, bullets}   
-    | eai == 0  = Move (toPlayer ex px espeed)      (toPlayer ey py espeed)              --trail
-    | eai == 1  = Move (toPlayer ex px espeed)      (-espeed)                            --aim (trail on x only)
-    | eai == 2  = Move (dodgeBullet bullets enemy)  (-espeed)                            --dodge
-    | eai == 3  = if (dodgeBullet bullets enemy) == 0                                    --dodge and trail
-            then  Move (toPlayer ex px espeed)      (toPlayer ey py espeed)              
-            else  Move (dodgeBullet bullets enemy)  (-espeed)
-    | otherwise = Move 0                            (-espeed)                            --stationary
+      | eai == 0  = Move 0                            (-espeed)                            --stationary     
+      | eai == 1  = Move (toPlayer ex px espeed)      (-espeed)                            --aim (trail on x only)
+      | eai == 2  = if (dodgeBullet bullets enemy) == 0                                    --dodge and aim
+            then    Move (toPlayer ex px espeed)      (-espeed)               
+            else    Move (dodgeBullet bullets enemy)  (-espeed)
+      | eai == 3  = Move (toPlayer ex px espeed)      (toPlayer ey py espeed)              --trail
+      | eai == 4  = if (dodgeBullet bullets enemy) == 0                                    --dodge and trail
+            then    Move (toPlayer ex px espeed)      (toPlayer ey py espeed)              
+            else    Move (dodgeBullet bullets enemy)  (-espeed)
+      | otherwise = Move 0                            (-espeed)                            --stationary
 
 dodgeBullet :: [Bullet] -> Enemy -> Int
 dodgeBullet bullets Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), espeed}  
@@ -106,8 +109,7 @@ newEnemy gs@GameState{difficulty, randomGen}    | number == 0 = (Just (selectEne
                                                 | otherwise   = (Nothing,rg3)
             where (number,    rg1)  = randomR (0,     100 :: Int) randomGen     --maybe a new enemy spawns
                   (location,  rg2)  = randomR (-275,  275 :: Int) rg1           --the new enemy location is random
-                  (enemytype, rg3)  = randomR (0,       0 :: Int) rg2           --the new enemy has a random type assigned                            
-
+                  (enemytype, rg3)  = randomR (0,       4 :: Int) rg2           --the new enemy has a random type assigned                            
 
 bulletUpdate :: Bullet -> Bullet
 bulletUpdate (Bullet pos (BulletType speed box dmg pic) up) = (Bullet (updatePos speed pos) (BulletType speed box dmg pic) up)
@@ -119,7 +121,6 @@ shootUpdate secs gstate@GameState { elapsedTime, bullets, player = player@Player
     where canshoot = space && (lastFire> fireRate)
           sizer (HitBox xbox ybox) = ybox `quot` 2
                                                          
-
 -- | Updating Position depending on keys pressed
 movementUpdate :: KeysPressed -> Position -> Position
 movementUpdate (KeysPressed w a s d sp) =   boolupdate w (Move 0 movementSpeed). 

@@ -36,7 +36,7 @@ data HitBox = HitBox { width :: Int, height :: Int}
 
 data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float, hitAnim :: Float, invincibility :: Float }
 
-data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float , model :: Int, eai :: Int, espeed :: Int, killpoints :: Int, eHitAnim :: Float, killAnim :: Float }
+data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float , eai :: Int, espeed :: Int, killpoints :: Int, eHitAnim :: Float, killAnim :: Float }
 
 data Position = Position { xpos :: Int, ypos :: Int }
 
@@ -117,8 +117,8 @@ enemyScore enemy@Enemy{ehealth, killpoints, killAnim}               | ehealth > 
                                                                     | otherwise = 0
 
 enemyShoot ::  Float -> Enemy -> (Maybe Bullet,Enemy)
-enemyShoot secs enem@Enemy{eBullet, eLastFire, epos = (Position xp yp), ehitbox= (HitBox x y)} | enemyCanShoot enem = (Just (Bullet (Position xp (yp- (fromIntegral y) `div` 2 )) eBullet 0) , enem{ eLastFire = 0}  )
-                                                                                               | otherwise = (Nothing,  enem{ eLastFire = secs + eLastFire})
+enemyShoot secs enem@Enemy{eBullet = eBullet@BulletType{size = HitBox bsx bsy }, eLastFire, epos = (Position xp yp), ehitbox= (HitBox x y)} | enemyCanShoot enem = (Just (Bullet (Position xp (yp- (fromIntegral y) `div` 2 - (bsx `div` 2 ))) eBullet 0) , enem{ eLastFire = 0}  )
+                                                                                                                                            | otherwise = (Nothing,  enem{ eLastFire = secs + eLastFire})
 
 enemyCanShoot :: Enemy -> Bool                                            
 enemyCanShoot Enemy{efireRate, eLastFire} | efireRate < eLastFire = True
@@ -153,12 +153,12 @@ initialState = GameState
                          "default"
 
 selectEnemy :: Int -> Int -> Enemy
---                   position   hitbox  fireRate  bullettype      lastfire  health  model ai  speed killpoints  HitAnim 
-selectEnemy d sel = [Enemy enemySpawn eHitBox (1/0)     standardEBullet 0         20       0     4   2    (1000*d)        0     0
-                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       1     1   2     (20*d)          0     0
-                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       2     2   2     (30*d)          0     0
-                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     3   2     (100*d )        0     0
-                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     4   2     (1*d)           0     0]!!sel
+--                         position   hitbox           fireRate  bullettype      lastfire  health  ai  speed killpoints  HitAnim DeathAnim
+selectEnemy d sel = [Enemy enemySpawn (HitBox 50 50)   1         standardEBullet 0         5       0   2     (1000*d)    0       0
+                    ,Enemy enemySpawn (HitBox 50 50)   1         standardEBullet 0         5       1   2     (20*d)      0       0
+                    ,Enemy enemySpawn (HitBox 50 50)   1         standardEBullet 0         5       2   2     (30*d)      0       0
+                    ,Enemy enemySpawn (HitBox 50 50)   1         standardEBullet 0         5       3   2     (100*d )    0       0
+                    ,Enemy enemySpawn (HitBox 50 50)   1         standardEBullet 0         5       4   2     (1*d)       0       0]!!sel
 
 standardBullet :: BulletType
 standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage (color red (circleSolid 5)) )
@@ -186,9 +186,6 @@ screeny = 1080
 
 playerHitBox :: HitBox
 playerHitBox = HitBox 40 40
-
-eHitBox :: HitBox
-eHitBox = HitBox 100 100
 
 beginPos :: Position
 beginPos = Position 0 0
