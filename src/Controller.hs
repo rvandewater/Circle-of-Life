@@ -179,7 +179,8 @@ mainMenuUpdate (EventKey (SpecialKey KeyEnter) Up _ _)  gstate@GameState{screen}
 mainMenuUpdate _ gstate = gstate 
 
 gameOverUpdate :: Event -> GameState -> GameState
-gameOverUpdate _ GameState{randomGen} = initialState randomGen
+gameOverUpdate (EventKey _ _ _ _) GameState{randomGen} = initialState randomGen
+gameOverUpdate _ gstate = gstate
 
 
 difficultyUpdate :: Event -> GameState -> GameState

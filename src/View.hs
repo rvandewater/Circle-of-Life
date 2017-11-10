@@ -9,8 +9,9 @@ import Data.List.Split
 import Data.List
 --Generate display
 view :: Picture -> GameState -> IO Picture
-view bg gs@GameState{screen,score, scorelist, plrname}  | screen == MainMenu = return (pictures[(scale 0.5 0.5(translate (-fromIntegral screenx) 0 (color green (Text "Circle of life")))), (translate 0 (-200) (color green (thickCircle 10 20)))])
-                                                        | screen == GameOver      = return (pictures [translate (-350) 400 (color green (Text "Game Over")),  translate (-200) 0 (color green (Text "Score:")), scale 1.5 1.5(translate (-100) (-200) (color green (Text (show score))))])
+view bg gs@GameState{screen,score, scorelist, plrname}  | screen == MainMenu = return (pictures[(scale 0.7 0.7(translate (-400) 600 (color green (Text "Circle of life")))), scale 2 2 (translate (15) (225) (color green (thickCircle 10 20))), (scale 0.5 0.5 (translate (-700) (-200) (color green( text "Press Space to Start")))), 
+                                                                (scale 0.4 0.4 (translate (-900) (-850) (color green( text "Press Enter for High Scores")))) ])
+                                                        | screen == GameOver      = return (pictures [translate (-350) 400 (color green (Text "Game Over")),  translate (-200) 0 (color green (Text "Score:")), scale 1.5 1.5(translate (-50) (-200) (color green (Text (show score))))])
                                                         | screen == PausedGame  = return (translate (-200) 0 (color green (Text "Paused")))
                                                         | screen == DifficultySelect  = return (scale 0.5 0.5 (pictures [ (translate (- ( fromIntegral screenx)) 0 (color green (Text "Select your difficulty"))), translate 0 (-200) (color green (Text "1")),
                                                                 translate 0 (-310) (color green (Text "2")), translate 0 (-420) (color green (Text "3")) ]))

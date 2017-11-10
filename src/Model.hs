@@ -12,7 +12,7 @@ import Data.List
 data GameState = GameState {
                    elapsedTime :: Float
                  , screen :: GameScreen
-                 , player :: Player
+                 , player :: Player 
                  , keys :: KeysPressed
                  , bullets :: [Bullet]
                  , enemies :: [Enemy]
@@ -34,7 +34,7 @@ data BulletType =  BulletType { speed:: Move, size :: HitBox, damage :: Float, b
 
 data HitBox = HitBox { width :: Int, height :: Int}   
 
-data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float, hitAnim :: Float, invincibility :: Float }
+data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float, hitAnim :: Float, invincibility :: Float } 
 
 data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float , eai :: Int, espeed :: Int, killpoints :: Int, eHitAnim :: Float, killAnim :: Float }
 
