@@ -52,7 +52,8 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
               hitAnimReset               frm                     | plrcolldamage > 0 = 1
                                                                  | frm < 0 = 0
                                                                  | otherwise = frm - secs
-              enemAnimReset  enem@Enemy{eHitAnim}                | eHitAnim > 0 = enem{eHitAnim = eHitAnim-secs}
+              enemAnimReset  enem@Enemy{eHitAnim, killAnim}      | killAnim > 0 = enem{killAnim= killAnim - secs}
+                                                                 | eHitAnim > 0 = enem{eHitAnim = eHitAnim-secs}
                                                                  | eHitAnim <= 0 = enem{eHitAnim = 0}
               
               

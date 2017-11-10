@@ -35,7 +35,7 @@ data HitBox = HitBox { width :: Int, height :: Int}
 
 data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float, hitAnim :: Float }
 
-data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float , model :: Int, eai :: Int, espeed :: Int, killpoints :: Int, eHitAnim :: Float}
+data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float , model :: Int, eai :: Int, espeed :: Int, killpoints :: Int, eHitAnim :: Float, killAnim :: Float }
 
 data Position = Position { xpos :: Int, ypos :: Int }
 
@@ -86,6 +86,7 @@ instance Ship Enemy where
                                                                                              | otherwise = Nothing
   getDamage dmg enemy@(Enemy { ehealth}) | dmg <= 0 = enemy
                                          | otherwise =  enemy {ehealth = ehealth - dmg, eHitAnim = 1}
+                                         
 
 shipsHit :: Ship k => [Bullet] -> [k] -> ([k],[Bullet] )
 shipsHit bullets = foldl oneship ( [], bullets)                                  where
@@ -105,8 +106,10 @@ enemyColl player@(Player {pos, hitbox, health}) enemy@(Enemy {epos, ehitbox, ehe
                                                                                           | otherwise = (0, enemy)
 
 enemyKill :: Enemy -> Maybe Enemy
-enemyKill enemy@Enemy{ehealth}                            | ehealth >= 0 = Just enemy
-                                                          | otherwise = Nothing
+enemyKill enemy@Enemy{ehealth, killAnim}                            | ehealth > 0 = Just enemy
+                                                                    | killAnim == 0 = Just enemy{killAnim = 1}
+                                                                    | killAnim < 0 = Nothing
+                                                                    | otherwise = Just enemy
 enemyScore :: Enemy -> Int
 enemyScore enemy@Enemy{ehealth, killpoints}               | ehealth >= 0 = 0
                                                           | otherwise = killpoints
@@ -148,11 +151,11 @@ initialState = GameState
 
 selectEnemy :: Int -> Int -> Enemy
 --                   position   hitbox  fireRate  bullettype      lastfire  health  model ai  speed killpoints  HitAnim 
-selectEnemy d sel = [Enemy enemySpawn eHitBox (1/0)     standardEBullet 0         20       0     4   2    (1000*d)       0
-                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       1     1   2     (20*d)          0
-                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       2     2   2     (30*d)          0
-                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     3   2     (100*d )        0
-                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     4   2     (1*d)           0]!!sel
+selectEnemy d sel = [Enemy enemySpawn eHitBox (1/0)     standardEBullet 0         20       0     4   2    (1000*d)        0     0
+                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       1     1   2     (20*d)          0     0
+                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       2     2   2     (30*d)          0     0
+                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     3   2     (100*d )        0     0
+                    ,Enemy enemySpawn eHitBox 1         standardEBullet 0         5       3     4   2     (1*d)           0     0]!!sel
 
 standardBullet :: BulletType
 standardBullet = (BulletType bulletSpeed bulletHitBox bulletDamage (color red (circleSolid 5)) )

@@ -44,8 +44,9 @@ enemyVisual :: GameState -> Picture
 enemyVisual GameState{enemies} = pictures (map enemyPic enemies)
 
 enemyPic :: Enemy -> Picture
-enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _  model _ _ _ eanim)   | (eanim > 0) &&((floor(eanim*10)) `mod` 2  == 0) = blank
-                                                                                | otherwise = translate (fromIntegral xpos) (fromIntegral ypos) ( (getModel model))
+enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _  model _ _ _ eanim killanim)   | (killanim > 0) = translate (fromIntegral xpos) (fromIntegral ypos)(scale killanim killanim (getModel model))
+                                                                                         | (eanim > 0) &&((floor(eanim*10)) `mod` 2  == 0) = blank
+                                                                                         | otherwise = translate (fromIntegral xpos) (fromIntegral ypos) ( (getModel model))
 
 getModel :: Int -> Picture
 getModel m | m == 0             = (color blue     (rectangleSolid 100 100))
