@@ -20,7 +20,6 @@ view bg gs@GameState{screen,score, scorelist}   | screen == MainMenu = return (p
                                                 | screen == PlayGame = return (viewPure bg gs)
                                                 | otherwise = return blank
 
-
 viewPure :: Picture -> GameState -> Picture
 viewPure bg gstate@GameState{score, screen}             = pictures [updateBg bg gstate, playerVisual gstate, bulletVisual gstate, enemyVisual gstate, informationVisual gstate    ]
 --Updating background
@@ -44,12 +43,12 @@ enemyVisual :: GameState -> Picture
 enemyVisual GameState{enemies} = pictures (map enemyPic enemies)
 
 enemyPic :: Enemy -> Picture
-enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _  model _ _ _ eanim killanim)   | (killanim > 0) = translate (fromIntegral xpos) (fromIntegral ypos)(scale killanim killanim (getModel model))
+enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _  ai _ _ eanim killanim)   | (killanim > 0) = translate (fromIntegral xpos) (fromIntegral ypos)(scale killanim killanim (getModel ai))
                                                                                          | (eanim > 0) &&((floor(eanim*10)) `mod` 2  == 0) = blank
-                                                                                         | otherwise = translate (fromIntegral xpos) (fromIntegral ypos) ( (getModel model))
+                                                                                         | otherwise = translate (fromIntegral xpos) (fromIntegral ypos) ( (getModel ai))
 
 getModel :: Int -> Picture
-getModel m | m == 0             = (color blue     (rectangleSolid 100 100))
+getModel m | m == 0             = (color blue     (rectangleSolid 50 50))
            | m == 1             = (color white    (rectangleSolid 50 50))
            | m == 2             = (color yellow   (rectangleSolid 50 50))
            | m == 3             = (color red      (rectangleSolid 50 50))
