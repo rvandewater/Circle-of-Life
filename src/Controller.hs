@@ -12,7 +12,7 @@ import Data.List
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate@GameState { screen, score, plrname, level, difficulty }                        | screen == PausedGame || screen == MainMenu || screen == DifficultySelect || screen == LevelSelect || screen==GameOver || screen == HighScores || screen == WriteScore False = return gstate
+step secs gstate@GameState { screen, score, plrname, level, difficulty, runTime}                | screen == PausedGame || screen == MainMenu || screen == DifficultySelect || screen == LevelSelect || screen==GameOver || screen == HighScores || screen == WriteScore False = return gstate{runTime = runTime + secs}
                                                                                                 | screen == WriteScore True = 
                                                                                                                         do  
                                                                                                                             appendFile "highscore"  (plrname ++ " " ++ (show score) ++ " " ++ (show level) ++ " " ++(show difficulty)++ "~"   ) 
@@ -102,7 +102,7 @@ toPlayer ex px espeed | ex < px - 1 = espeed
 
 newEnemy :: GameState -> (Maybe Enemy,StdGen) 
 newEnemy gs@GameState{difficulty, randomGen, level}    | number == 0 = (Just (selectEnemy difficulty enemytype) {epos = Position location 550},rg3)
-                                                | otherwise   = (Nothing,rg3)
+                                                       | otherwise   = (Nothing,rg3)
             where (number,    rg1)  = randomR (0,     (250 - difficulty*50) :: Int) randomGen     --maybe a new enemy spawns
                   (location,  rg2)  = randomR (-250,  250 :: Int) rg1                    --the new enemy location is random
                   (enemytype, rg3)  = randomR (0,     (1+level) :: Int) rg2                  --the new enemy has a random type assigned                            
@@ -140,7 +140,9 @@ input e gstate@game  = return gstate
 
 writeScoreUpdate :: Event -> GameState -> GameState
 writeScoreUpdate (EventKey (SpecialKey KeyEnter) Up _ _)  gstate@GameState{screen} = gstate{screen = WriteScore True}
-writeScoreUpdate (EventKey (Char x)  Down _ _) gst@GameState{plrname} = gst{plrname =  plrname ++ [x]}
+writeScoreUpdate (EventKey (Char '\b')  Down _ _)  gstate@GameState{plrname} = gstate{plrname = take (length plrname - 1) plrname} 
+writeScoreUpdate (EventKey (Char x)  Down _ _) gst@GameState{plrname} | (length plrname) < 6 = gst{plrname =  plrname ++ [x]}
+                                                                      | otherwise = gst
 writeScoreUpdate _ gstate = gstate
 
 pausedGameUpdate :: Event -> GameState -> GameState

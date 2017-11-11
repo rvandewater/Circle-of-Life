@@ -9,25 +9,39 @@ import Data.List.Split
 import Data.List
 --Generate display
 view :: Picture -> GameState -> IO Picture
-view bg gs@GameState{screen,score, scorelist, plrname}  | screen == MainMenu = return (pictures[(scale 0.7 0.7(translate (-400) 600 (color green (Text "Circle of life")))), scale 2 2 (translate (15) (225) (color green (thickCircle 10 20))), (scale 0.5 0.5 (translate (-700) (-200) (color green( text "Press Space to Start")))), 
-                                                                (scale 0.4 0.4 (translate (-900) (-850) (color green( text "Press Enter for High Scores")))) ])
-                                                        | screen == GameOver      = return (pictures [translate (-350) 400 (color green (Text "Game Over")),  translate (-200) 0 (color green (Text "Score:")), scale 1.5 1.5(translate (-50) (-200) (color green (Text (show score))))])
-                                                        | screen == PausedGame  = return (translate (-200) 0 (color green (Text "Paused")))
-                                                        | screen == DifficultySelect  = return (scale 0.5 0.5 (pictures [ (translate (- ( fromIntegral screenx)) 0 (color green (Text "Select your difficulty"))), translate 0 (-200) (color green (Text "1")),
+view bg gs@GameState{screen,score, scorelist, plrname, runTime} | screen == MainMenu = return (mainMenuVisual gs)
+                                                                | screen == GameOver      = return (pictures [translate (-350) 400 (color (colorFlow runTime) (Text "Game Over")),  translate (-200) 0 (color green (Text "Score:")), scale 1.5 1.5(translate (-50* (fromIntegral (length (show score)))) (-200) (color green (Text (show score))))])
+                                                                | screen == PausedGame  = return (translate (-200) 0 (color (colorFlow runTime) (Text "Paused")))
+                                                                | screen == DifficultySelect  = return (scale 0.5 0.5 (pictures [ (translate (- ( fromIntegral screenx)) 0 (color green (Text "Select your difficulty"))), translate 0 (-200) (color green (Text "1")),
                                                                 translate 0 (-310) (color green (Text "2")), translate 0 (-420) (color green (Text "3")) ]))
-                                                        | screen == LevelSelect  = return (scale 0.5 0.5 (pictures [ (translate (- ( fromIntegral screenx)) 0 (color green (Text "Select your level"))), translate 0 (-200) (color green (Text "1")),
+                                                                | screen == LevelSelect  = return (scale 0.5 0.5 (pictures [ (translate (- ( fromIntegral screenx)) 0 (color green (Text "Select your level"))), translate 0 (-200) (color green (Text "1")),
                                                                 translate 0 (-310) (color green (Text "2")), translate 0 (-420) (color green (Text "3")) ]))
-                                                        | screen == HighScores = return (highScoreParse scorelist)
-                                                        | screen == PlayGame = return (viewPure bg gs)
-                                                        | screen == (WriteScore False ) = return (pictures [(translate (-200) 0 (color green (Text plrname))) , ( scale 0.5 0.5 (translate (-600) (800) (color green( text "Write your name")))),
+                                                                | screen == HighScores = return (highScoreParse scorelist)
+                                                                | screen == PlayGame = return (viewPure bg gs)
+                                                                | screen == (WriteScore False ) = return (pictures [(translate (-200) 0 (color green (Text plrname))) , ( scale 0.5 0.5 (translate (-600) (800) (color green( text "Write your name")))),
                                                                  (scale 0.5 0.5 (translate (-700) (-800) (color green( text "Press Enter to finish")))) ])
-                                                        | otherwise = return blank
+                                                                | otherwise = return blank
 
 viewPure :: Picture -> GameState -> Picture
 viewPure bg gstate@GameState{score, screen}             = pictures [updateBg bg gstate, playerVisual gstate, bulletVisual gstate, enemyVisual gstate, informationVisual gstate    ]
 --Updating background
 updateBg :: Picture -> GameState -> Picture
 updateBg bg gs = scale informationScaler 1 (translate 0 {-(-(mod' (100 * (elapsedTime gs)) 1080) +-} 304 bg)
+
+mainMenuVisual :: GameState -> Picture
+mainMenuVisual GameState{runTime} = (pictures[(scale 0.7 0.7(translate (-400) 600 (color green (Text "Circle of life")))), 
+                                scale 2 2 (translate (15) (225) (color (colorFlow runTime) (thickCircle 10 20))), (flash (scale 0.5 0.5 (translate (-700) (-200) (color green( text "Press Space to Start")))) runTime), 
+                                (scale 0.4 0.4 (translate (-900) (-850) (color green( text "Press Enter for High Scores")))),  scale 2 2 (scrollBar  (getModel (mod (ceiling runTime) 5)) runTime) ])
+scrollBar :: Picture -> Float -> Picture
+scrollBar k time = (translate ((mod'(time*100) (fromIntegral screenx))-  (fromIntegral screenx /2)) 100 k)
+
+flash :: Picture -> Float -> Picture
+flash k time | (ceiling time `mod` 2) == 0 = blank
+             | otherwise = k
+
+colorFlow :: Float -> Color        
+colorFlow time | ( mod' time 2)< 1 = (makeColor (1 - ( mod' time 1)) ( mod' time 1 ) (1 - ( mod' time 1)) 1)
+               | otherwise = (makeColor ( mod' time 1 ) (1 - ( mod' time 1)) ( mod' time 1 ) 1)
 
 --Visualizing player
 playerVisual :: GameState -> Picture 
@@ -38,14 +52,14 @@ highScoreParse scores = pictures [(translate 0 (400) (pictures (translated))), (
                         where   translated = map finalpics (zip [0..] pics)
                                 finalpics (y, pic) =  (translate (-300) (y*(-100)-100)) pic 
                                 pics = map (scale 0.5 0.5) (map (color green) (map Text scorelist))
-                                scorelist = splitOn "~" scores
+                                scorelist = "Name Score Lvl Dif":splitOn "~" scores
                                 --(sort(map (\x -> read x:: Int) scorelist))
 --Visualizing each enemy
 enemyVisual :: GameState -> Picture
 enemyVisual GameState{enemies} = pictures (map enemyPic enemies)
 
 enemyPic :: Enemy -> Picture
-enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _  ai _ _ eanim killanim)   | (killanim > 0) = translate (fromIntegral xpos) (fromIntegral ypos)(scale killanim killanim (getModel ai))
+enemyPic (Enemy (Position xpos ypos) (HitBox x y) _ _ _ _  ai _ _ eanim killanim)        | (killanim > 0) = translate (fromIntegral xpos) (fromIntegral ypos)(scale killanim killanim (getModel ai))
                                                                                          | (eanim > 0) &&((floor(eanim*10)) `mod` 2  == 0) = blank
                                                                                          | otherwise = translate (fromIntegral xpos) (fromIntegral ypos) ( (getModel ai))
 
@@ -72,8 +86,9 @@ speedLines secs (Move mx my) (xpos, ypos) = (color white (line [ (fromIntegral x
         
 
 informationVisual ::  GameState -> Picture
-informationVisual gstate = pictures[ (translate (-  (((fromIntegral informationBar)/2) + fromIntegral screenx/2)) 0 (rotate 90(scale 0.5 0.5(color red (text (show (health(player gstate)))))))), 
-     (translate (fromIntegral screenx/2) 0 (rotate 90( scale 0.5 0.5 (color red (text (show (score gstate)))))))]
+informationVisual gstate = pictures[(translate  0 ((fromIntegral screeny/2)- 50) (color (makeColor 0.5 0.5 0.5 0.5) (rectangleSolid (fromIntegral screenx+informationScaler) 100))),
+         (translate (-  ( fromIntegral screenx/2)) ((fromIntegral screeny/2)- 100) (scale 0.4 0.4(color red (text (show (health(player gstate))++" HP"))))), 
+     (translate ( (fromIntegral screenx/2) -300) ((fromIntegral screeny/2)- 100) ( scale 0.4 0.4 (color red (text ("Score "++ show (score gstate))))))]
 
 
 

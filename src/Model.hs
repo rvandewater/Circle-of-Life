@@ -11,6 +11,7 @@ import Data.List
 -- ********************* DATA TYPES ***************
 data GameState = GameState {
                    elapsedTime :: Float
+                 , runTime :: Float
                  , screen :: GameScreen
                  , player :: Player 
                  , keys :: KeysPressed
@@ -84,7 +85,7 @@ instance Ship Player where
                                           | otherwise = player {health = health - dmg, hitAnim = 1}
 instance Ship Enemy where
   isHit enemy@(Enemy {epos, ehitbox, ehealth}) (Bullet bulletpos (BulletType _ size dmg _) _)    | collision (ehitbox, epos) (size, bulletpos) = Just dmg
-                                                                                             | otherwise = Nothing
+                                                                                                 | otherwise = Nothing
   getDamage dmg enemy@(Enemy { ehealth}) | dmg <= 0 = enemy
                                          | otherwise =  enemy {ehealth = ehealth - dmg, eHitAnim = 1}
                                          
@@ -140,6 +141,7 @@ collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = ((x1 -
 initialState :: StdGen -> GameState
 --Starting phase
 initialState = GameState 
+                         0
                          0 
                          MainMenu
                          (Player beginPos playerHitBox 0.5 standardBullet 0 100 0 0) 
@@ -149,8 +151,8 @@ initialState = GameState
                          1
                          1
                          0
-                         " "
-                         "default"
+                         ""
+                         "could not retrieve score"
 
 selectEnemy :: Int -> Int -> Enemy
 --                         position   hitbox           fireRate  bullettype                lastfire  health    ai  speed killpoints  HitAnim DeathAnim
