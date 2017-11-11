@@ -15,7 +15,7 @@ step :: Float -> GameState -> IO GameState
 step secs gstate@GameState { screen, score, plrname, level, difficulty, runTime}                | screen == PausedGame || screen == MainMenu || screen == DifficultySelect || screen == LevelSelect || screen==GameOver || screen == HighScores || screen == WriteScore False = return gstate{runTime = runTime + secs}
                                                                                                 | screen == WriteScore True = 
                                                                                                                         do  
-                                                                                                                            appendFile "highscore"  (plrname ++ (replicate (5 - length plrname) ' ') ++ (show score) ++ (replicate (5 - length (show score)) ' ')++ (show level) ++ " " ++(show difficulty)++ "~"   ) 
+                                                                                                                            appendFile "highscore"  (plrname ++ (replicate (6 - length plrname) ' ') ++ (show score) ++ (replicate (4 - length (show score)) ' ')++ (show level) ++ "  " ++(show difficulty)++ "~"   ) 
                                                                                                                             return gstate{screen = GameOver}
                                                                                                 | screen == ReadScore =  do scores <- readFile "highscore"
                                                                                                                             return gstate {scorelist = scores, screen = HighScores}
@@ -107,7 +107,7 @@ toPlayer ex px espeed | ex < px - 1 = espeed
 getNewPowerups :: GameState -> (Maybe PowerUp,StdGen) 
 getNewPowerups gs@GameState{difficulty, randomGen}    | chance == 0 = (Just(options!!putype),rg4)
                                                       | otherwise   = (Nothing,rg4)
-            where (chance, rg1)  = randomR (0,     (difficulty*250)  :: Int) randomGen        --maybe a new powerup spawns
+            where (chance, rg1)  = randomR (0,     (difficulty*500)  :: Int) randomGen        --maybe a new powerup spawns
                   (xpos,   rg2)  = randomR (-250,  250               :: Int) rg1              --the new xpos
                   (ypos,   rg3)  = randomR (-250,  250               :: Int) rg2              --the new ypos
                   (putype, rg4)  = randomR (0,2                      :: Int) rg3              --the type of powerup                           
