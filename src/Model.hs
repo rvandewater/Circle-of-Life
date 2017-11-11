@@ -111,7 +111,7 @@ getPower :: Player -> PowerUp -> (Player,Maybe PowerUp)
 getPower player@(Player {pos, hitbox, health}) pu@(Health hp ppos hb)     | collision (hitbox, pos) (hb, ppos) = (player{health = health + hp},Nothing)
                                                                           | otherwise = (player, Just pu )
 
-getPower player@(Player {pos, hitbox,fireRate }) pu@(FireRate fr ppos hb)  | collision (hitbox, pos) (hb, ppos) = (player{fireRate= fr+ fireRate}, Nothing)
+getPower player@(Player {pos, hitbox,fireRate }) pu@(FireRate fr ppos hb)  | collision (hitbox, pos) (hb, ppos) && (fireRate> 0.1) = (player{fireRate= fr- fireRate}, Nothing)
                                                                            | otherwise = (player, Just pu )
 
 getPower player@(Player {pos, hitbox, health, bullet = bullet@BulletType {damage}}) pu@(Damage dm ppos hb)  | collision (hitbox, pos) (hb, ppos) = (player{bullet = bullet{damage=damage+dm}}, Nothing)
@@ -123,12 +123,12 @@ enemyColl player@(Player {pos, hitbox, health}) enemy@(Enemy {epos, ehitbox, ehe
 
 enemyKill :: Enemy -> Maybe Enemy
 enemyKill enemy@Enemy{ehealth, killAnim}                            | ehealth > 0 = Just enemy
-                                                                    | killAnim == 0 = Just enemy{killAnim = 1}
+                                                                    | killAnim == 0 = Just enemy{killAnim = scoreAnim}
                                                                     | killAnim < 0 = Nothing
                                                                     | otherwise = Just enemy
 enemyScore :: Enemy -> Int
 enemyScore enemy@Enemy{ehealth, killpoints, killAnim}               | ehealth > 0 = 0
-                                                                    | killAnim == 1 = killpoints
+                                                                    | killAnim == scoreAnim = killpoints
                                                                     | otherwise = 0
 
 enemyShoot ::  Float -> Enemy -> (Maybe Bullet,Enemy)
@@ -226,8 +226,5 @@ enemySpawn = Position 0 560
 collDamage :: Float
 collDamage = 5
 
-informationBar :: Int
-informationBar = 200
-
-informationScaler :: Float
-informationScaler =  (fromIntegral screenx) / ( ( fromIntegral screenx) + ((fromIntegral informationBar) / 2))
+scoreAnim:: Float
+scoreAnim = 0.125
