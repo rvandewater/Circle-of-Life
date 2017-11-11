@@ -50,7 +50,7 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
               (updatedenemies, srg)                               = enemyUpdate gstate (mapMaybe enemyKill enemiesover)                               -- Updates the killed enemies after collision check
               enemycollover                                       | invincibility == 0 = map snd collisioncheck                                       -- Enemies after collision check (with invincibility period)
                                                                   | otherwise = updatedenemies                                                        
-              (plrcolldamage)                                     | invincibility == 0 = (sum (map fst collisioncheck))                               -- Damage done to the player in collision check
+              plrcolldamage                                       | invincibility == 0 = (sum (map fst collisioncheck))                               -- Damage done to the player in collision check
                                                                   | otherwise = 0
               collisioncheck                                      = (map (enemyColl player) updatedenemies)                                           -- Collision check of enemies          
               bulletAniUp bullet@Bullet{frame}                    | frame < 2 = bullet {frame = frame + secs}                                         -- Bullet animation frame update
