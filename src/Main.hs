@@ -8,7 +8,7 @@ module Main where
     import System.Random
     
     main :: IO ()
-    main = do   bg <- loadBMP "bg2.bmp"
+    main = do   bg <- loadBMP "level_2.bmp"
                 rg <- getStdGen
                 playIO (InWindow "Circle of Life" (screenx + informationBar, screeny) (0, 0)) -- Or FullScreen
                         black            -- Background color
