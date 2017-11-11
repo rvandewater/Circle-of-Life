@@ -57,8 +57,6 @@ playerVisual :: GameState -> Picture
 playerVisual GameState{player = Player {pos = Position{xpos, ypos}, hitbox = HitBox{width},hitAnim}} | (hitAnim>0 ) = translate (fromIntegral xpos) (fromIntegral ypos) (color (makeColor hitAnim (1-hitAnim) 0 1) (circleSolid 20))
                                                                                                      | otherwise = translate (fromIntegral xpos) (fromIntegral ypos) (color green (circleSolid 20))
 
-playerVisual GameState{player = Players {p1= Player{pos = Position{xpos, ypos}, hitbox = HitBox{width},hitAnim}} }     | (hitAnim>0 ) = translate (fromIntegral xpos) (fromIntegral ypos) (color (makeColor hitAnim (1-hitAnim) 0 1) (circleSolid 20))
-                                                                                                                       | otherwise = translate (fromIntegral xpos) (fromIntegral ypos) (color green (circleSolid 20))
 highScoreParse :: String -> Picture
 highScoreParse scores = pictures [(translate 0 (400) (pictures (translated))), ( (scale 0.5 0.5) (translate (-300) (800) (color green( text "High scores"))))]
                         where   translated = map finalpics (zip [0..] pics)
