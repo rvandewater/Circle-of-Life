@@ -41,9 +41,9 @@ powerUpsVisual :: GameState -> Picture
 powerUpsVisual GameState{powerups, elapsedTime} = pictures (map (powerUpVisual elapsedTime) powerups) 
 
 powerUpVisual :: Float -> PowerUp -> Picture
-powerUpVisual rt (Health _ (Position x y) _)  =  (translate (fromIntegral x)  (fromIntegral y) (pictures [ (color (colorFlow  rt) (rectangleSolid 35 30)),translate (-17) (-13) (flash  ((scale 0.2 0.2 (color red (Text "HP")))) rt)]))
-powerUpVisual rt (FireRate _ (Position x y) _)  = (translate (fromIntegral x)  (fromIntegral y) (pictures [(translate 17 10 (color (colorFlow  rt) (rectangleSolid 35 30))),(flash  ((scale 0.2 0.2 (color red (Text "FR"))))) rt]))
-powerUpVisual rt (Damage _ (Position x y) _)  = (translate (fromIntegral x)  (fromIntegral y) (pictures [(translate 17 10 (color (colorFlow  rt) (rectangleSolid 35 30))),(flash  ((scale 0.2 0.2 (color red (Text "DM"))))) rt]))
+powerUpVisual rt (Health _ (Position x y) _)  =  (translate (fromIntegral x)  (fromIntegral y) (pictures [ (color (colorFlow  rt) (rectangleSolid 35 30)),translate (-17) (-13) (flash  ((scale 0.2 0.2 (color black (Text "HP")))) rt)]))
+powerUpVisual rt (FireRate _ (Position x y) _)  = (translate (fromIntegral x)  (fromIntegral y) (pictures [(translate 17 10 (color (colorFlow  rt) (rectangleSolid 35 30))),(flash  ((scale 0.2 0.2 (color black (Text "FR"))))) rt]))
+powerUpVisual rt (Damage _ (Position x y) _)  = (translate (fromIntegral x)  (fromIntegral y) (pictures [(translate 17 10 (color (colorFlow  rt) (rectangleSolid 35 30))),(flash  ((scale 0.2 0.2 (color black (Text "DM"))))) rt]))
 
 flash :: Picture -> Float -> Picture
 flash k time | (ceiling time `mod` 2) == 0 = blank
