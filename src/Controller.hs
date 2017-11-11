@@ -108,7 +108,7 @@ newEnemy gs@GameState{difficulty, randomGen, level}    | number == 0 = (Just (se
                                                        | otherwise   = (Nothing,rg3)
             where (number,    rg1)  = randomR (0,     (250 - difficulty*50) :: Int) randomGen     --maybe a new enemy spawns
                   (location,  rg2)  = randomR (-250,  250 :: Int) rg1                    --the new enemy location is random
-                  (enemytype, rg3)  = randomR (2,     (1+level) :: Int) rg2                  --the new enemy has a random type assigned                            
+                  (enemytype, rg3)  = randomR (0,     (1+level) :: Int) rg2                  --the new enemy has a random type assigned                            
 
 bulletUpdate :: Bullet -> Bullet
 bulletUpdate (Bullet pos (BulletType speed box dmg pic) up) = (Bullet (updatePos speed pos) (BulletType speed box dmg pic) up)
