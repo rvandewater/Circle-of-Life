@@ -29,9 +29,9 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
                                           bullets     = map bulletAniUp (filter boundcheck (map bulletUpdate bulletsafterenemies)) , 
                                           screen      = screenChecker screen, 
                                           enemies     = map enemAnimReset(enemycollover),
-                                          randomGen   = nrg,
                                           score       = score + killscore,
-                                          powerups    = powerupsover
+                                          powerups    = powerupsover ++ maybeToList newpowerups,
+                                          randomGen   = nrg
                                           }
         where (bulletlist, fire)                                  = shootUpdate secs gstate
               bullenem                                            = map (enemyShoot secs)  enemies
@@ -40,19 +40,20 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
               bulletsshot                                         = (bulletlist ++ bulletsaftenem)
               playerinvinc                                        | invinc > 0 = invinc - secs                                            
                                                                   | invinc <= 0 = 0  
-              (plrup, powerupsover)                                = (foldl (pwrplayer) player powerups  ,(catMaybes (map snd (map (getPower player) powerups))) )                 
-              pwrplayer  pl pu                                     = fst (getPower pl pu)                
-              (bulletsover, plr@Player {health, hitAnim} )        = shipHit bulletsshot plrup                                     -- Checks if the ship hits one of the bullets
-              (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemsaftershoot                                  -- Checks if one of the ships hits one of the bullets
-              boundcheck (Bullet pos (BulletType speed box dmg _) _ ) = not (outOfBounds pos box)                                 -- Checks if the bullet is not out of bounds
-              killscore                                           = sum (map enemyScore updatedenemies)                              -- Adds score to player score if enemy died
-              (updatedenemies, nrg)                               = enemyUpdate gstate (mapMaybe enemyKill enemiesover)         -- Updates the killed enemies after collision check
+              (plrup, powerupsover)                               = (foldl pwrplayer player powerups  ,catMaybes (map snd (map (getPower player) powerups)))   
+              (newpowerups, nrg)                                  = getNewPowerups gstate
+              pwrplayer  pl pu                                    = fst (getPower pl pu)                
+              (bulletsover, plr@Player {health, hitAnim} )        = shipHit bulletsshot plrup                                                         -- Checks if the ship hits one of the bullets
+              (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemsaftershoot                                              -- Checks if one of the ships hits one of the bullets
+              boundcheck (Bullet pos (BulletType speed box dmg _) _ ) = not (outOfBounds pos box)                                                     -- Checks if the bullet is not out of bounds
+              killscore                                           = sum (map enemyScore updatedenemies)                                               -- Adds score to player score if enemy died
+              (updatedenemies, srg)                               = enemyUpdate gstate (mapMaybe enemyKill enemiesover)                               -- Updates the killed enemies after collision check
               enemycollover                                       | invincibility == 0 = map snd collisioncheck   
-                                                                  | otherwise = updatedenemies                                     -- Enemies after collision check
-              (plrcolldamage)                                     | invincibility == 0 = (sum (map fst collisioncheck))  -- Damage done to the player in collision check
+                                                                  | otherwise = updatedenemies                                                        -- Enemies after collision check
+              (plrcolldamage)                                     | invincibility == 0 = (sum (map fst collisioncheck))                               -- Damage done to the player in collision check
                                                                   | otherwise = 0
-              collisioncheck                                      = (map (enemyColl player) updatedenemies)             -- Collision check of enemies          
-              bulletAniUp bullet@Bullet{frame}                    | frame < 2 = bullet {frame = frame + secs}                     -- Bullet animation frame update
+              collisioncheck                                      = (map (enemyColl player) updatedenemies)                                           -- Collision check of enemies          
+              bulletAniUp bullet@Bullet{frame}                    | frame < 2 = bullet {frame = frame + secs}                                         -- Bullet animation frame update
                                                                   | otherwise = bullet {frame = 0}
               screenChecker      scr                              | health <= 0 = WriteScore False
                                                                   | otherwise = scr
@@ -103,12 +104,24 @@ toPlayer ex px espeed | ex < px - 1 = espeed
                       | ex > px + 1 = -espeed - espeed
                       | otherwise = 0
 
+getNewPowerups :: GameState -> (Maybe PowerUp,StdGen) 
+getNewPowerups gs@GameState{difficulty, randomGen}    | chance == 0 = (Just(options!!putype),rg4)
+                                                      | otherwise   = (Nothing,rg4)
+            where (chance, rg1)  = randomR (0,     (difficulty*250)  :: Int) randomGen        --maybe a new powerup spawns
+                  (xpos,   rg2)  = randomR (-250,  250               :: Int) rg1              --the new xpos
+                  (ypos,   rg3)  = randomR (-250,  250               :: Int) rg2              --the new ypos
+                  (putype, rg4)  = randomR (0,2                      :: Int) rg3              --the type of powerup                           
+                  options        = [Health 20 (Position xpos ypos) (HitBox 30 35), FireRate 0.05 (Position xpos ypos) (HitBox 30 35), Damage 5 (Position xpos ypos) (HitBox 30 35)]
+
 newEnemy :: GameState -> (Maybe Enemy,StdGen) 
 newEnemy gs@GameState{difficulty, randomGen, level}    | number == 0 = (Just (selectEnemy difficulty enemytype) {epos = Position location 550},rg3)
                                                        | otherwise   = (Nothing,rg3)
             where (number,    rg1)  = randomR (0,     (250 - difficulty*50) :: Int) randomGen     --maybe a new enemy spawns
-                  (location,  rg2)  = randomR (-250,  250 :: Int) rg1                    --the new enemy location is random
-                  (enemytype, rg3)  = randomR (0,     (1+level) :: Int) rg2                  --the new enemy has a random type assigned                            
+                  (location,  rg2)  = randomR (-250,  250 :: Int) rg1                             --the new enemy location is random
+                  (enemytype, rg3)  = randomR (0,     enemylevel :: Int) rg2                       --the new enemy has a random type assigned    
+                  enemylevel        | level == 3 = 4
+                                    | otherwise  = level
+
 
 bulletUpdate :: Bullet -> Bullet
 bulletUpdate (Bullet pos (BulletType speed box dmg pic) up) = (Bullet (updatePos speed pos) (BulletType speed box dmg pic) up)

@@ -138,7 +138,7 @@ enemyShoot secs enem@Enemy{eBullet = eBullet@BulletType{size = HitBox bsx bsy },
 enemyCanShoot :: Enemy -> Bool                                            
 enemyCanShoot Enemy{efireRate, eLastFire} | efireRate < eLastFire = True
                                           | otherwise = False
-                                          
+     
 collision:: (HitBox, Position) -> (HitBox, Position) -> Bool
 collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = ((x1 - b1) < (x2 + b2)) &&
                                                                           ((x1 + b1) > (x2 - b2)) &&
@@ -150,7 +150,8 @@ collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = ((x1 -
                                                                                 b2 = (w2 `quot` 2)
                                                                                 v1 = (h1 `quot` 2)
                                                                                 v2 = (h2 `quot` 2)
-                              
+        
+                                                                                
 -- ********************* CONSTANTS ***************
 initialState :: StdGen -> GameState
 --Starting phase
