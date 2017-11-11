@@ -113,7 +113,7 @@ getPower player@(Player {pos, hitbox,fireRate }) pu@(FireRate fr ppos hb)  | col
                                                                            | otherwise = (player, Just pu )
 
 getPower player@(Player {pos, hitbox, health, bullet = bullet@BulletType {damage}}) pu@(Damage dm ppos hb)  | collision (hitbox, pos) (hb, ppos) && (damage< 10) = (player{bullet = bullet{damage=damage+dm}}, Nothing)
-                                                                                                            | collision (hitbox, pos) (hb, ppos) && (damage> 10) = (player, Nothing)
+                                                                                                            | collision (hitbox, pos) (hb, ppos) && (damage => 10) = (player, Nothing)
                                                                                                             | otherwise = (player, Just pu )
 enemyColl :: Player -> Enemy -> (Float, Enemy)
 

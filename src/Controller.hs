@@ -41,7 +41,7 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
                                                                   | invinc <= 0 = 0  
               plrup                                               = (foldl pwrplayer player powerups)                                                 -- Player after powerup
               pwrplayer  pl pu                                    = fst (getPower pl pu)                                                              -- Function to help plrup
-              powerupsover                                        = catMaybes (map snd (map (getPower player) powerups)))                             -- PowerUp updates to the list
+              powerupsover                                        = catMaybes (map snd (map (getPower player) powerups))                             -- PowerUp updates to the list
               (newpowerups, nrg)                                  = getNewPowerups gstate                                                             -- Random powerups gen
               (bulletsover, plr@Player {health, hitAnim} )        = shipHit bulletsshot plrup                                                         -- Checks if the ship hits one of the bullets
               (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemsaftershoot                                              -- Checks if one of the ships hits one of the bullets
