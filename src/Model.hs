@@ -47,11 +47,11 @@ data KeysPressed = KeysPressed { w :: Bool, a :: Bool, s :: Bool, d:: Bool, spac
 
 
 -- ********************* FUNCTIONS ***************
--- update position
+-- Update position
 updatePos ::  Move -> Position -> Position
 updatePos  (Move xmov ymov) (Position xpos ypos) = Position (xpos + xmov) (ypos + ymov)
 
--- update position enemy
+-- Update position enemy
 updatePosE ::  Move -> Position -> HitBox -> Position
 updatePosE  (Move xmov ymov) (Position xpos ypos) ehitbox = if validPosition then Position newX newY else Position xpos newY
       where validPosition :: Bool
@@ -59,7 +59,7 @@ updatePosE  (Move xmov ymov) (Position xpos ypos) ehitbox = if validPosition the
             newX          = xpos + xmov
             newY          = ypos + ymov
 
--- update position, if it is inside the bounds
+-- Update position, if it is inside the bounds
 updatePosP ::  Move -> Position -> Position
 updatePosP  (Move xmov ymov) (Position xpos ypos) = if validPosition then Position newX newY else Position xpos ypos
   where validPosition :: Bool
@@ -67,7 +67,7 @@ updatePosP  (Move xmov ymov) (Position xpos ypos) = if validPosition then Positi
         newX          = xpos + xmov
         newY          = ypos + ymov
 
--- check if the position is valid to go to
+-- Check if the position is valid to go to
 outOfBounds :: Position -> HitBox -> Bool
 outOfBounds (Position posx posy) (HitBox width height) =  not validPosition 
   where validPosition :: Bool
@@ -76,12 +76,12 @@ outOfBounds (Position posx posy) (HitBox width height) =  not validPosition
                         && posy + posy <  screeny - height
                         && posy + posy > -screeny + height
 
--- typeclass ship                        
+-- Typeclass ship                        
 class Ship k where 
   isHit     :: k      -> Bullet -> Maybe Float
   getDamage :: Float  -> k      -> k
 
--- instance for player
+-- Instance for player
 instance Ship Player where 
   isHit player@Player {pos, hitbox, health} (Bullet bulletpos (BulletType _ size dmg _) _) | collision (hitbox, pos) (size, bulletpos) = Just dmg
                                                                                            | otherwise                                 = Nothing
@@ -150,8 +150,8 @@ collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = ((x1 -
                                                                                 v1 = (h1 `quot` 2)
                                                                                 v2 = (h2 `quot` 2)                                                                               
 -- ********************* CONSTANTS ***************
+-- Starting phase
 initialState :: StdGen -> GameState
---Starting phase
 initialState = GameState 
                          0
                          0 
@@ -178,7 +178,7 @@ selectEnemy d sel = [Enemy enemySpawn (HitBox 50 50)   2         (difMod standar
 difMod :: BulletType -> Int -> BulletType
 difMod bull@BulletType{damage} mod = bull{damage = damage * (fromIntegral mod)}
 
--- bullettypes for the player and the enemies
+-- Bullettypes for the player and the enemies
 standardBullet,standardEBullet,fastEBullet,heavyEBullet,rapidfireEBullet :: BulletType
 standardBullet    = (BulletType bulletSpeed     bulletHitBox    bulletDamage  (color                      red    (circleSolid 5 )))
 standardEBullet   = (BulletType (Move 0 (-10))  bulletHitBox    3             (color (light               red)   (circleSolid 5 )))
@@ -186,7 +186,7 @@ fastEBullet       = (BulletType (Move 0 (-13))  bulletHitBox    2             (c
 heavyEBullet      = (BulletType (Move 0 (-5 ))  (HitBox 20 20)  20            (color (dark(dark           red))  (circleSolid 10)))
 rapidfireEBullet  = (BulletType (Move 0 (-8 ))  bulletHitBox    1             (color                  magenta    (circleSolid 5 )))
 
---moventSpeed of the player
+-- MoventSpeed of the player
 movementSpeed :: Int
 movementSpeed = 5
 
