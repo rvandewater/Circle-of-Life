@@ -90,7 +90,7 @@ dodgeBullet bullets Enemy{epos = (Position ex ey), ehitbox = (HitBox width heigh
                 zone Bullet{position = (Position x y), kind = BulletType{speed = Move xmov ymov}}
                             | abs ey -  abs y < 200                                         --if in range y
                             && (ymov > 0 && ey > y) || (ymov < 0 && ey < y)                 --if closing in on y
-                            && (abs x < abs ex + width + 20)                                --if closing in on x 
+                            && (abs (abs ex - abs x) < width + 20)                          --if closing in on x 
                             = if ex < x     then Just (-espeed)
                                             else Just espeed
                             | otherwise       =    Nothing
@@ -105,7 +105,7 @@ newEnemy gs@GameState{difficulty, randomGen, level}    | number == 0 = (Just (se
                                                        | otherwise   = (Nothing,rg3)
             where (number,    rg1)  = randomR (0,     (250 - difficulty*50) :: Int) randomGen     --maybe a new enemy spawns
                   (location,  rg2)  = randomR (-250,  250 :: Int) rg1                    --the new enemy location is random
-                  (enemytype, rg3)  = randomR (0,     (1+level) :: Int) rg2                  --the new enemy has a random type assigned                            
+                  (enemytype, rg3)  = randomR (2,     (1+level) :: Int) rg2                  --the new enemy has a random type assigned                            
 
 bulletUpdate :: Bullet -> Bullet
 bulletUpdate (Bullet pos (BulletType speed box dmg pic) up) = (Bullet (updatePos speed pos) (BulletType speed box dmg pic) up)
