@@ -8,42 +8,50 @@ import Data.List
 
 -- ********************* DATA TYPES ***************
 data GameState = GameState {
-                   elapsedTime :: Float
-                 , runTime :: Float
-                 , screen :: GameScreen
-                 , player :: Player 
-                 , keys :: KeysPressed
-                 , bullets :: [Bullet]
-                 , enemies :: [Enemy]
-                 , powerups :: [PowerUp]
-                 , level :: Int
-                 , difficulty :: Int
-                 , score :: Int
-                 , plrname :: String
-                 , scorelist :: String
-                 , randomGen :: StdGen
+                   elapsedTime :: Float   -- Elapsed time to check / animate some things
+                 , runTime :: Float       -- Time for animations on other screens
+                 , screen :: GameScreen   -- Current screen
+                 , player :: Player       -- Current stats of player
+                 , keys :: KeysPressed    -- Current keys
+                 , bullets :: [Bullet]    -- List of current bullets
+                 , enemies :: [Enemy]     -- List of current enemeies
+                 , powerups :: [PowerUp]  -- List of current powerups
+                 , level :: Int           -- Current level
+                 , difficulty :: Int      -- Current difficulty
+                 , score :: Int           -- Current score
+                 , plrname :: String      -- Name to be saved in highscores
+                 , scorelist :: String    -- Highscores list
+                 , randomGen :: StdGen    -- The main random generator
                   }
-
+--Bullet with position, type and animation frame
 data Bullet = Bullet { position:: Position, kind :: BulletType, frame :: Float}
 
 --Different screens for different points
 data GameScreen = MainMenu | GameOver| WriteScore Bool | ReadScore | PlayGame | DifficultySelect | LevelSelect | PausedGame | HighScores | NoScreen 
   deriving (Eq)
 
+--The different powerups
 data PowerUp = Health Float Position HitBox | FireRate Float Position HitBox | Damage Float Position HitBox
 
+--Bullettype for determining the constants inside a bullet
 data BulletType =  BulletType { speed:: Move, size :: HitBox, damage :: Float, bulletpic :: Picture}
 
-data HitBox = HitBox { width :: Int, height :: Int}   
-  
+--An hitbox type
+data HitBox = HitBox { width :: Int, height :: Int}  
+
+-- Player which has among others hitAnim animation, invincibility period
 data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float, hitAnim :: Float, invincibility :: Float } 
 
+-- Enemy which has the same things as a player but ai number, points which you get for killing, hitanimation and killanimations
 data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float , eai :: Int, espeed :: Int, killpoints :: Int, eHitAnim :: Float, killAnim :: Float }
 
+--Standard position datatype
 data Position = Position { xpos :: Int, ypos :: Int }
 
+--A move vector with which you move each time
 data Move = Move { xmov :: Int, ymov :: Int }
 
+--The current keys being pressed
 data KeysPressed = KeysPressed { w :: Bool, a :: Bool, s :: Bool, d:: Bool, space :: Bool }
 
 
