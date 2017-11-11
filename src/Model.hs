@@ -87,7 +87,7 @@ outOfBounds (Position posx posy) (HitBox width height) =  not validPosition
 
 -- Typeclass ship                        
 class Ship k where 
-  isHit     :: k      -> Bullet -> Maybe Float      --Wether the ship is hit by a bullet
+  isHit     :: k      -> Bullet -> Maybe Float      -- Wether the ship is hit by a bullet
   getDamage :: Float  -> k      -> k                -- Subtract damage and set animation
 
 -- Instance for player
