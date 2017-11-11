@@ -23,7 +23,7 @@ view bg gs@GameState{screen,score, scorelist, plrname, runTime} | screen == Main
                                                                 | otherwise = return blank
 
 viewPure :: Picture -> GameState -> Picture
-viewPure bg gstate@GameState{score, screen}             = pictures [updateBg bg gstate, playerVisual gstate, bulletVisual gstate, enemyVisual gstate, informationVisual gstate    ]
+viewPure bg gstate@GameState{score, screen}             = pictures [updateBg bg gstate, playerVisual gstate, bulletVisual gstate, enemyVisual gstate, informationVisual gstate, powerUpsVisual gstate   ]
 --Updating background
 updateBg :: Picture -> GameState -> Picture
 updateBg bg gs =  (translate 0 (-(mod' (100 * (elapsedTime gs)) 1440) + 720) bg)
@@ -34,6 +34,14 @@ mainMenuVisual GameState{runTime} = (pictures[(scale 0.7 0.7(translate (-400) 60
                                 (scale 0.4 0.4 (translate (-900) (-850) (color green( text "Press Enter for High Scores")))),  scale 2 2 (scrollBar  (getModel (mod (ceiling runTime) 5)) runTime) ])
 scrollBar :: Picture -> Float -> Picture
 scrollBar k time = (translate ((mod'(time*100) (fromIntegral screenx))-  (fromIntegral screenx /2)) 100 k)
+
+powerUpsVisual :: GameState -> Picture
+powerUpsVisual GameState{powerups, elapsedTime} = pictures (map (powerUpVisual elapsedTime) powerups) 
+
+powerUpVisual :: Float -> PowerUp -> Picture
+powerUpVisual rt (Health _ (Position x y) _)  =  (translate (fromIntegral x)  (fromIntegral y) (pictures [(translate 17 10 (color (colorFlow  rt) (rectangleSolid 35 30))),(flash  ((scale 0.2 0.2 (color red (Text "HP"))))) rt]))
+powerUpVisual rt (FireRate _ (Position x y) _)  = flash  (translate (fromIntegral x)  (fromIntegral y) (scale 0.2 0.2 (color red (Text "FR")))) rt
+powerUpVisual rt (Damage _ (Position x y) _)  = flash  (translate (fromIntegral x)  (fromIntegral y) (scale 0.2 0.2 (color red (Text "DM")))) rt
 
 flash :: Picture -> Float -> Picture
 flash k time | (ceiling time `mod` 2) == 0 = blank
@@ -47,6 +55,9 @@ colorFlow time | ( mod' time 2)< 1 = (makeColor (1 - ( mod' time 1)) ( mod' time
 playerVisual :: GameState -> Picture 
 playerVisual GameState{player = Player {pos = Position{xpos, ypos}, hitbox = HitBox{width},hitAnim}} | (hitAnim>0 ) = translate (fromIntegral xpos) (fromIntegral ypos) (color (makeColor hitAnim (1-hitAnim) 0 1) (circleSolid 20))
                                                                                                      | otherwise = translate (fromIntegral xpos) (fromIntegral ypos) (color green (circleSolid 20))
+
+playerVisual GameState{player = Players {p1= Player{pos = Position{xpos, ypos}, hitbox = HitBox{width},hitAnim}} }     | (hitAnim>0 ) = translate (fromIntegral xpos) (fromIntegral ypos) (color (makeColor hitAnim (1-hitAnim) 0 1) (circleSolid 20))
+                                                                                                                       | otherwise = translate (fromIntegral xpos) (fromIntegral ypos) (color green (circleSolid 20))
 highScoreParse :: String -> Picture
 highScoreParse scores = pictures [(translate 0 (400) (pictures (translated))), ( (scale 0.5 0.5) (translate (-300) (800) (color green( text "High scores"))))]
                         where   translated = map finalpics (zip [0..] pics)

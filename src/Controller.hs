@@ -22,7 +22,7 @@ step secs gstate@GameState { screen, score, plrname, level, difficulty, runTime}
                                                                                                 | otherwise = gameUpdate secs gstate
 
 gameUpdate :: Float -> GameState -> IO GameState
-gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate, bullet, invincibility}, screen, keys, bullets, enemies, randomGen, score} =
+gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate, bullet, invincibility}, screen, keys, bullets, enemies, randomGen, score, powerups} =
      return $ gstate { 
                                           elapsedTime = elapsedTime gstate + secs, 
                                           player      = plr {pos = movementUpdate keys pos, lastFire = fire, health = health - plrcolldamage, hitAnim = hitAnimReset hitAnim, invincibility = playerinvinc},
@@ -30,14 +30,19 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
                                           screen      = screenChecker screen, 
                                           enemies     = map enemAnimReset(enemycollover),
                                           randomGen   = nrg,
-                                          score       = score + killscore
+                                          score       = score + killscore,
+                                          powerups    = powerupsover
                                           }
         where (bulletlist, fire)                                  = shootUpdate secs gstate
               bullenem                                            = map (enemyShoot secs)  enemies
               enemsaftershoot                                     = map snd bullenem
               bulletsaftenem                                      = map fromJust (filter isJust (map fst bullenem))                                   -- Checks and fires if player can
-              bulletsshot                                         = (bulletlist ++ bulletsaftenem)                
-              (bulletsover, plr@Player {health, hitAnim} )        = shipHit bulletsshot player                                     -- Checks if the ship hits one of the bullets
+              bulletsshot                                         = (bulletlist ++ bulletsaftenem)
+              playerinvinc                                        | invinc > 0 = invinc - secs                                            
+                                                                  | invinc <= 0 = 0  
+              (plrup, powerupsover)                                = (foldl (pwrplayer) player powerups  ,(catMaybes (map snd (map (getPower player) powerups))) )                 
+              pwrplayer  pl pu                                     = fst (getPower pl pu)                
+              (bulletsover, plr@Player {health, hitAnim} )        = shipHit bulletsshot plrup                                     -- Checks if the ship hits one of the bullets
               (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemsaftershoot                                  -- Checks if one of the ships hits one of the bullets
               boundcheck (Bullet pos (BulletType speed box dmg _) _ ) = not (outOfBounds pos box)                                 -- Checks if the bullet is not out of bounds
               killscore                                           = sum (map enemyScore updatedenemies)                              -- Adds score to player score if enemy died
@@ -59,9 +64,7 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
                                                                   | eHitAnim <= 0 = enem{eHitAnim = 0}
               invinc                                              | plrcolldamage> 0 =  1 
                                                                   | otherwise = invincibility    
-              playerinvinc                                        | invinc > 0 = invinc - secs                                            
-                                                                  | invinc <= 0 = 0                        
-                       
+             
 enemyUpdate :: GameState -> [Enemy] -> ([Enemy],StdGen)
 enemyUpdate gs enemies  | isJust newEn = ((fromJust newEn) : (map positionUpdate enemies),rg)
                         | otherwise    = (map positionUpdate enemies,rg)

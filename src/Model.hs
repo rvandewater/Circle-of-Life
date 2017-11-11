@@ -17,6 +17,7 @@ data GameState = GameState {
                  , keys :: KeysPressed
                  , bullets :: [Bullet]
                  , enemies :: [Enemy]
+                 , powerups :: [PowerUp]
                  , level :: Int
                  , difficulty :: Int
                  , score :: Int
@@ -31,11 +32,13 @@ data Bullet = Bullet { position:: Position, kind :: BulletType, frame :: Float}
 data GameScreen = MainMenu | GameOver| WriteScore Bool | ReadScore | PlayGame | DifficultySelect | LevelSelect | PausedGame | HighScores | NoScreen 
   deriving (Eq)
 
+data PowerUp = Health Float Position HitBox | FireRate Float Position HitBox | Damage Float Position HitBox
+
 data BulletType =  BulletType { speed:: Move, size :: HitBox, damage :: Float, bulletpic :: Picture}
 
 data HitBox = HitBox { width :: Int, height :: Int}   
 
-data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float, hitAnim :: Float, invincibility :: Float } 
+data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float, hitAnim :: Float, invincibility :: Float } | Players {p1:: Player, p2 :: Player}
 
 data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float , eai :: Int, espeed :: Int, killpoints :: Int, eHitAnim :: Float, killAnim :: Float }
 
@@ -101,7 +104,15 @@ shipHit bullets k
   =   ( (filter checker bullets),getDamage totaldam k) 
           where totaldam = (sum (mapMaybe (isHit k) bullets  ))
                 checker (thisBull@(Bullet pos (BulletType speed size bulletDamage _ ) _)) = (isNothing(isHit k thisBull))
+getPower :: Player -> PowerUp -> (Player,Maybe PowerUp)
+getPower player@(Player {pos, hitbox, health}) pu@(Health hp ppos hb)     | collision (hitbox, pos) (hb, ppos) = (player{health = health + hp},Nothing)
+                                                                          | otherwise = (player, Just pu )
 
+getPower player@(Player {pos, hitbox,fireRate }) pu@(FireRate fr ppos hb)  | collision (hitbox, pos) (hb, ppos) = (player{fireRate= fr+ fireRate}, Nothing)
+                                                                           | otherwise = (player, Just pu )
+
+getPower player@(Player {pos, hitbox, health, bullet = bullet@BulletType {damage}}) pu@(Damage dm ppos hb)  | collision (hitbox, pos) (hb, ppos) = (player{bullet = bullet{damage=damage+dm}}, Nothing)
+                                                                                                            | otherwise = (player, Just pu )
 enemyColl :: Player -> Enemy -> (Float, Enemy)
 
 enemyColl player@(Player {pos, hitbox, health}) enemy@(Enemy {epos, ehitbox, ehealth})    | collision (hitbox, pos) (ehitbox, epos) = (collDamage, enemy {ehealth= ehealth-collDamage, eHitAnim=1})
@@ -144,10 +155,11 @@ initialState = GameState
                          0
                          0 
                          MainMenu
-                         (Player beginPos playerHitBox 0.5 standardBullet 0 100 0 0) 
+                         (Player beginPos playerHitBox 0.5 standardBullet 0 100 0 0)
                          (KeysPressed False False False False False) 
                          [] 
                          []
+                         [Health 10 (Position 50 50) (HitBox 35 30)]
                          1
                          1
                          0
