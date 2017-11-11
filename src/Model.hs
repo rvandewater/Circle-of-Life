@@ -70,8 +70,8 @@ updatePosP  (Move xmov ymov) (Position xpos ypos) = if validPosition then Positi
 outOfBounds :: Position -> HitBox -> Bool
 outOfBounds (Position posx posy) (HitBox width height) =  not validPosition 
   where validPosition :: Bool
-        validPosition =    posx + posx <  screenx - (width `quot` 2)
-                        && posx + posx> - screenx  + (width `quot` 2)
+        validPosition =    posx + (width `quot` 2) <  (screenx `quot` 2)  
+                        && posx - (width `quot` 2) > (-screenx  `quot` 2)
                         && posy + posy <  screeny - height
                         && posy + posy > -screeny + height
 class Ship k where 
@@ -194,7 +194,7 @@ bulletDamage :: Float
 bulletDamage = 5
 
 screenx :: Int 
-screenx = 608
+screenx = 808
 
 screeny :: Int
 screeny = 1080

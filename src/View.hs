@@ -26,7 +26,7 @@ viewPure :: Picture -> GameState -> Picture
 viewPure bg gstate@GameState{score, screen}             = pictures [updateBg bg gstate, playerVisual gstate, bulletVisual gstate, enemyVisual gstate, informationVisual gstate    ]
 --Updating background
 updateBg :: Picture -> GameState -> Picture
-updateBg bg gs = scale informationScaler 1 (translate 0 (-(mod' (100 * (elapsedTime gs)) 1440) + 720) bg)
+updateBg bg gs =  (translate 0 (-(mod' (100 * (elapsedTime gs)) 1440) + 720) bg)
 
 mainMenuVisual :: GameState -> Picture
 mainMenuVisual GameState{runTime} = (pictures[(scale 0.7 0.7(translate (-400) 600 (color green (Text "Circle of life")))), 
