@@ -14,8 +14,7 @@ import Data.List
 step :: Float -> GameState -> IO GameState
 step secs gstate@GameState { screen, score, plrname, level, difficulty, runTime}                | screen == PausedGame || screen == MainMenu || screen == DifficultySelect || screen == LevelSelect || screen==GameOver || screen == HighScores || screen == WriteScore False = return gstate{runTime = runTime + secs}
                                                                                                 | screen == WriteScore True = 
-                                                                                                                        do  
-                                                                                                                            appendFile "highscore"  (plrname ++"%" ++ (show score) ++"%" ++ (show level) ++"%" ++(show difficulty)++ "~"   ) 
+                                                                                                                        do  appendFile "highscore"  (plrname ++"%" ++ (show score) ++"%" ++ (show level) ++"%" ++(show difficulty)++ "~"   ) 
                                                                                                                             return gstate{screen = GameOver}
                                                                                                 | screen == ReadScore =  do scores <- readFile "highscore"
                                                                                                                             return gstate {scorelist = scores, screen = HighScores}
@@ -33,39 +32,41 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
                                           powerups    = powerupsover ++ maybeToList newpowerups,
                                           randomGen   = nrg
                                           }
-        where (bulletlist, fire)                                  = shootUpdate secs gstate
-              bullenem                                            = map (enemyShoot secs)  enemies
-              enemsaftershoot                                     = map snd bullenem
-              bulletsaftenem                                      = map fromJust (filter isJust (map fst bullenem))                                   -- Checks and fires if player can
-              bulletsshot                                         = (bulletlist ++ bulletsaftenem)
-              playerinvinc                                        | invinc > 0 = invinc - secs                                            
+        where (bulletlist, fire)                                  = shootUpdate secs gstate                                                           -- Checks and fires if player can
+              bullenem                                            = map (enemyShoot secs)  enemies                                                    -- Bullets, enemies after enemies have shot
+              enemsaftershoot                                     = map snd bullenem                                                                  -- Enemies after bulletshot  
+              bulletsaftenem                                      = map fromJust (filter isJust (map fst bullenem))                                   -- Bullets after enemies shot
+              bulletsshot                                         = (bulletlist ++ bulletsaftenem)                                                    -- Total bullets + new enemy bullets
+              playerinvinc                                        | invinc > 0 = invinc - secs                                                        -- Invincibility frames update
                                                                   | invinc <= 0 = 0  
-              (plrup, powerupsover)                               = (foldl pwrplayer player powerups  ,catMaybes (map snd (map (getPower player) powerups)))   
-              (newpowerups, nrg)                                  = getNewPowerups gstate
-              pwrplayer  pl pu                                    = fst (getPower pl pu)                
+              plrup                                               = (foldl pwrplayer player powerups)                                                 -- Player after powerup
+              pwrplayer  pl pu                                    = fst (getPower pl pu)                                                              -- Function to help plrup
+              powerupsover                                        = catMaybes (map snd (map (getPower player) powerups)))                             -- PowerUp updates to the list
+              (newpowerups, nrg)                                  = getNewPowerups gstate                                                             -- Random powerups gen
               (bulletsover, plr@Player {health, hitAnim} )        = shipHit bulletsshot plrup                                                         -- Checks if the ship hits one of the bullets
               (enemiesover, bulletsafterenemies )                 = shipsHit bulletsover enemsaftershoot                                              -- Checks if one of the ships hits one of the bullets
               boundcheck (Bullet pos (BulletType speed box dmg _) _ ) = not (outOfBounds pos box)                                                     -- Checks if the bullet is not out of bounds
               killscore                                           = sum (map enemyScore updatedenemies)                                               -- Adds score to player score if enemy died
               (updatedenemies, srg)                               = enemyUpdate gstate (mapMaybe enemyKill enemiesover)                               -- Updates the killed enemies after collision check
-              enemycollover                                       | invincibility == 0 = map snd collisioncheck   
-                                                                  | otherwise = updatedenemies                                                        -- Enemies after collision check
+              enemycollover                                       | invincibility == 0 = map snd collisioncheck                                       -- Enemies after collision check (with invincibility period)
+                                                                  | otherwise = updatedenemies                                                        
               (plrcolldamage)                                     | invincibility == 0 = (sum (map fst collisioncheck))                               -- Damage done to the player in collision check
                                                                   | otherwise = 0
               collisioncheck                                      = (map (enemyColl player) updatedenemies)                                           -- Collision check of enemies          
               bulletAniUp bullet@Bullet{frame}                    | frame < 2 = bullet {frame = frame + secs}                                         -- Bullet animation frame update
                                                                   | otherwise = bullet {frame = 0}
-              screenChecker      scr                              | health <= 0 = WriteScore False
-                                                                  | otherwise = scr
-              hitAnimReset               frm                      | plrcolldamage > 0 = 1
+              screenChecker      scr                              | health <= 0 = WriteScore False                                                    -- Checks if game has ended
+                                                                  | otherwise = scr                                           
+              hitAnimReset               frm                      | plrcolldamage > 0 = 1                                                             -- Hitanimation reset
                                                                   | frm < 0 = 0
                                                                   | otherwise = frm - secs
-              enemAnimReset  enem@Enemy{eHitAnim, killAnim}       | killAnim > 0 = enem{killAnim= killAnim - secs}
+              enemAnimReset  enem@Enemy{eHitAnim, killAnim}       | killAnim > 0 = enem{killAnim= killAnim - secs}                                    -- Enemy hit animation logic
                                                                   | eHitAnim > 0 = enem{eHitAnim = eHitAnim-secs}
                                                                   | eHitAnim <= 0 = enem{eHitAnim = 0}
-              invinc                                              | plrcolldamage> 0 =  1 
-                                                                  | otherwise = invincibility    
-             
+              invinc                                              | plrcolldamage> 0 =  1                                                             -- Invincibility period check
+                                                                  | otherwise = invincibility  
+
+--Updates the postions off the new enemies
 enemyUpdate :: GameState -> [Enemy] -> ([Enemy],StdGen)
 enemyUpdate gs enemies  | isJust newEn = ((fromJust newEn) : (map positionUpdate enemies),rg)
                         | otherwise    = (map positionUpdate enemies,rg)
@@ -85,6 +86,7 @@ aiMove enemy@Enemy{epos = (Position ex ey), eai, espeed} GameState{player = Play
             else    Move (dodgeBullet bullets enemy)  (-espeed)
       | otherwise = Move 0                            (-espeed)                            --stationary
 
+--AI which dodges bullets
 dodgeBullet :: [Bullet] -> Enemy -> Int
 dodgeBullet bullets Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), espeed}  
                             | null tododge = 0
@@ -98,12 +100,13 @@ dodgeBullet bullets Enemy{epos = (Position ex ey), ehitbox = (HitBox width heigh
                             = if ex < x     then Just (-espeed)
                                             else Just espeed
                             | otherwise       =    Nothing
-
+--AI which trails player
 toPlayer :: Int -> Int -> Int -> Int
 toPlayer ex px espeed | ex < px - 1 = espeed
                       | ex > px + 1 = -espeed - espeed
                       | otherwise = 0
 
+--Generates random powerups
 getNewPowerups :: GameState -> (Maybe PowerUp,StdGen) 
 getNewPowerups gs@GameState{difficulty, randomGen}    | chance == 0 = (Just(options!!putype),rg4)
                                                       | otherwise   = (Nothing,rg4)
@@ -113,6 +116,7 @@ getNewPowerups gs@GameState{difficulty, randomGen}    | chance == 0 = (Just(opti
                   (putype, rg4)  = randomR (0,2                      :: Int) rg3              --the type of powerup                           
                   options        = [Health 20 (Position xpos ypos) (HitBox 30 35), FireRate 0.05 (Position xpos ypos) (HitBox 30 35), Damage 5 (Position xpos ypos) (HitBox 30 35)]
 
+--Generates random enemies
 newEnemy :: GameState -> (Maybe Enemy,StdGen) 
 newEnemy gs@GameState{difficulty, randomGen, level}    | number == 0 = (Just (selectEnemy difficulty enemytype) {epos = Position location 550},rg3)
                                                        | otherwise   = (Nothing,rg3)
@@ -122,10 +126,11 @@ newEnemy gs@GameState{difficulty, randomGen, level}    | number == 0 = (Just (se
                   enemylevel        | level == 3 = 4
                                     | otherwise  = level
 
-
+--Updates the position of the bullets
 bulletUpdate :: Bullet -> Bullet
 bulletUpdate (Bullet pos (BulletType speed box dmg pic) up) = (Bullet (updatePos speed pos) (BulletType speed box dmg pic) up)
 
+--Decides wether the enemy can shoot and returns the updated list of bullets
 shootUpdate :: Float -> GameState -> ([Bullet],Float)
 shootUpdate secs gstate@GameState { elapsedTime, bullets, player = player@Player {pos = Position {xpos,ypos}, hitbox, fireRate, bullet= thisbull@BulletType{size}, lastFire }, keys = keys@KeysPressed {space}} 
   | canshoot = ((Bullet (Position xpos (ypos + (sizer hitbox) +(sizer size) )) thisbull 0): bullets, 0 ) 
