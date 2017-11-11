@@ -15,7 +15,7 @@ step :: Float -> GameState -> IO GameState
 step secs gstate@GameState { screen, score, plrname, level, difficulty, runTime}                | screen == PausedGame || screen == MainMenu || screen == DifficultySelect || screen == LevelSelect || screen==GameOver || screen == HighScores || screen == WriteScore False = return gstate{runTime = runTime + secs}
                                                                                                 | screen == WriteScore True = 
                                                                                                                         do  
-                                                                                                                            appendFile "highscore"  (plrname ++ " " ++ (show score) ++ " " ++ (show level) ++ " " ++(show difficulty)++ "~"   ) 
+                                                                                                                            appendFile "highscore"  (plrname ++ (replicate (5 - length plrname) ' ') ++ (show score) ++ (replicate (5 - length (show score)) ' ')++ (show level) ++ " " ++(show difficulty)++ "~"   ) 
                                                                                                                             return gstate{screen = GameOver}
                                                                                                 | screen == ReadScore =  do scores <- readFile "highscore"
                                                                                                                             return gstate {scorelist = scores, screen = HighScores}
@@ -163,13 +163,13 @@ writeScoreUpdate _ gstate = gstate
 
 pausedGameUpdate :: Event -> GameState -> GameState
 pausedGameUpdate (EventKey (Char 'p')  Down _ _) gstate@GameState{screen} = gstate{screen = PlayGame} 
+pausedGameUpdate (EventKey (Char 'r') Down _ _) GameState{randomGen}= initialState randomGen
 pausedGameUpdate _ gstate = gstate
 
 -- | Handle input of a key
 playGameUpdate :: Event -> GameState -> GameState
 --Pause button handle
 playGameUpdate (EventKey (Char 'p') Down _ _) gstate@GameState { screen} = gstate{screen = PausedGame}
---Reset game
 
 --Handle game input
 playGameUpdate (EventKey c Up _ _ ) gstate@GameState { keys} = gstate {keys = (updatePress c False keys )}
