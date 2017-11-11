@@ -35,16 +35,19 @@ data GameScreen = MainMenu | GameOver| WriteScore Bool | ReadScore | PlayGame | 
 data PowerUp = Health Float Position HitBox | FireRate Float Position HitBox | Damage Float Position HitBox
 
 data BulletType =  BulletType { speed:: Move, size :: HitBox, damage :: Float, bulletpic :: Picture}
+  deriving (Eq)
 
 data HitBox = HitBox { width :: Int, height :: Int}   
-
-data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float, hitAnim :: Float, invincibility :: Float } | Players {p1:: Player, p2 :: Player}
+  deriving (Eq)
+  
+data Player = Player { pos :: Position, hitbox :: HitBox, fireRate :: Float, bullet :: BulletType, lastFire :: Float, health :: Float, hitAnim :: Float, invincibility :: Float } 
 
 data Enemy = Enemy { epos :: Position, ehitbox :: HitBox, efireRate :: Float, eBullet :: BulletType, eLastFire :: Float, ehealth :: Float , eai :: Int, espeed :: Int, killpoints :: Int, eHitAnim :: Float, killAnim :: Float }
 
 data Position = Position { xpos :: Int, ypos :: Int }
 
 data Move = Move { xmov :: Int, ymov :: Int }
+  deriving (Eq)
 
 data KeysPressed = KeysPressed { w :: Bool, a :: Bool, s :: Bool, d:: Bool, space :: Bool }
 
