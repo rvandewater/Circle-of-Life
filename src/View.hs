@@ -8,7 +8,7 @@ import Data.Fixed
 import Data.List.Split
 import Data.List
 --Generate display
-view :: Picture -> GameState -> IO Picture
+view :: [Picture] -> GameState -> IO Picture
 view bg gs@GameState{screen,score, scorelist, plrname, runTime} | screen == MainMenu = return (mainMenuVisual gs)
                                                                 | screen == GameOver      = return (pictures [translate (-350) 400 (color (colorFlow runTime) (Text "Game Over")),  translate (-200) 0 (color green (Text "Score:")), scale 1.5 1.5(translate (-50* (fromIntegral (length (show score)))) (-200) (color green (Text (show score))))])
                                                                 | screen == PausedGame  = return (translate (-200) 0 (color (colorFlow runTime) (Text "Paused")))
@@ -22,11 +22,12 @@ view bg gs@GameState{screen,score, scorelist, plrname, runTime} | screen == Main
                                                                  (scale 0.5 0.5 (translate (-700) (-800) (color green( text "Press Enter to finish")))) ])
                                                                 | otherwise = return blank
 
-viewPure :: Picture -> GameState -> Picture
+viewPure :: [Picture] -> GameState -> Picture
 viewPure bg gstate@GameState{score, screen}             = pictures [updateBg bg gstate, playerVisual gstate, bulletVisual gstate, enemyVisual gstate, informationVisual gstate    ]
+
 --Updating background
-updateBg :: Picture -> GameState -> Picture
-updateBg bg gs =  (translate 0 (-(mod' (100 * (elapsedTime gs)) 1440) + 720) bg)
+updateBg :: [Picture] -> GameState -> Picture
+updateBg bg gs@GameState{level} =  translate 0 (1080 - (mod' (200 * elapsedTime gs) 2160)) (bg!!(level-1))            --putting background to the beginning and looping depending on the elapsed time
 
 mainMenuVisual :: GameState -> Picture
 mainMenuVisual GameState{runTime} = (pictures[(scale 0.7 0.7(translate (-400) 600 (color green (Text "Circle of life")))), 
