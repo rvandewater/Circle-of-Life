@@ -65,8 +65,11 @@ highScoreParse :: String -> Picture
 highScoreParse scores = pictures [(translate 0 (400) (pictures (translated))), ( (scale 0.5 0.5) (translate (-300) (800) (color green( fatText "High scores"))))]
                         where   translated = map finalpics (zip [0..] pics)
                                 finalpics (y, pic) =  (translate (-300) (y*(-100)-100)) pic 
-                                pics = map (scale 0.5 0.5) (map (color green) (map fatText scorelist))
-                                scorelist = "Name Score Lvl Dif": (tail (reverse(splitOn "~" scores)))
+                                pics = map (scale 0.5 0.5) (map (color green) (columnbar: (map rower elements)))
+                                columnbar = pictures[(translate (-100) 0 (fatText "Name")),  (translate (400) 0 (fatText "Score")), (translate (800) 0 (fatText "Lvl")), (translate (1000) 0 (fatText "Dif"))]
+                                rower row= pictures[(translate (-100) 0 (row!!0)),  (translate (400) 0 (row!!1)), (translate (800) 0 (row!!2)), (translate (1000) 0 (row!!3))]
+                                elements = (map.map) fatText(map (splitOn "%") scorelist)
+                                scorelist =  (tail (reverse(splitOn "~" scores)))
                                 --(sort(map (\x -> read x:: Int) scorelist))
 --Visualizing each enemy
 enemyVisual :: GameState -> Picture

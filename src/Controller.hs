@@ -15,7 +15,7 @@ step :: Float -> GameState -> IO GameState
 step secs gstate@GameState { screen, score, plrname, level, difficulty, runTime}                | screen == PausedGame || screen == MainMenu || screen == DifficultySelect || screen == LevelSelect || screen==GameOver || screen == HighScores || screen == WriteScore False = return gstate{runTime = runTime + secs}
                                                                                                 | screen == WriteScore True = 
                                                                                                                         do  
-                                                                                                                            appendFile "highscore"  (plrname ++ (replicate (6 - length plrname) ' ') ++ (show score) ++ (replicate (4 - length (show score)) ' ')++ (show level) ++ "  " ++(show difficulty)++ "~"   ) 
+                                                                                                                            appendFile "highscore"  (plrname ++"%" ++ (show score) ++"%" ++ (show level) ++"%" ++(show difficulty)++ "~"   ) 
                                                                                                                             return gstate{screen = GameOver}
                                                                                                 | screen == ReadScore =  do scores <- readFile "highscore"
                                                                                                                             return gstate {scorelist = scores, screen = HighScores}
