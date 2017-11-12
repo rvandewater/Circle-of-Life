@@ -11,26 +11,31 @@ import Data.Maybe
 import Data.List
 
 -- | Handle one iteration of the game
-step :: Float -> GameState -> IO GameState
-step secs gstate@GameState { screen, score, plrname, level, difficulty, runTime}                | screen == PausedGame || screen == MainMenu || screen == DifficultySelect || screen == LevelSelect || screen==GameOver || screen == RecentScores || screen == WriteScore False = return gstate{runTime = runTime + secs}
+step :: Float -> GameState -> IO GameState                                                      --These screens only need time for animation purposes
+step secs gstate@GameState { screen, score, plrname, level, difficulty, runTime}                | screen == PausedGame || screen == MainMenu || screen == DifficultySelect || screen == LevelSelect || screen==GameOver 
+                                                                                                            || screen == RecentScores || screen == WriteScore False = return gstate{runTime = runTime + secs}          
+                                                                                                -- Screen to write the score when the name is filled in
                                                                                                 | screen == WriteScore True = 
-                                                                                                                        do  appendFile "recentscore"  (plrname ++"%" ++ (show score) ++"%" ++ (show level) ++"%" ++(show difficulty)++ "~"   ) 
-                                                                                                                            return gstate{screen = GameOver}
-                                                                                                | screen == ReadScore =  do scores <- readFile "recentscore"
+                                                                                                                        do  appendFile "recentscore"  (plrname ++"%" ++ (show score) ++"%" ++ (show level) ++"%" ++(show difficulty)++ "~") 
+                                                                                                                            return gstate{screen = GameOver} 
+                                                                                                -- Reads score from file, sets in the gamestate and changes the screen to the scores
+                                                                                                | screen == ReadScore = do  scores <- readFile "recentscore"
                                                                                                                             return gstate {scorelist = scores, screen = RecentScores}
+                                                                                                -- You are in game: update the game
                                                                                                 | otherwise = gameUpdate secs gstate
-
+-- Updates the game
 gameUpdate :: Float -> GameState -> IO GameState
 gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate, bullet, invincibility}, screen, keys, bullets, enemies, randomGen, score, powerups} =
      return $ gstate    { 
-                        elapsedTime = elapsedTime gstate + secs, 
-                        player      = plr {pos = movementUpdate keys pos, lastFire = fire, health = health - plrcolldamage, hitAnim = hitAnimReset hitAnim, invincibility = playerinvinc},
-                        bullets     = map bulletAniUp (filter boundcheck (map bulletUpdate bulletsafterenemies)) , 
-                        screen      = screenChecker screen, 
-                        enemies     = map enemAnimReset enemycollover,
-                        score       = score + killscore,
-                        powerups    = powerupsover ++ maybeToList newpowerups,
-                        randomGen   = nrg
+                        elapsedTime = elapsedTime gstate + secs,                                                               -- Elapsed time ingame
+                        player      = plr {pos = movementUpdate keys pos, lastFire = fire, health = health - plrcolldamage,
+                                          hitAnim = hitAnimReset hitAnim, invincibility = playerinvinc},                       -- Update thep players with different updates
+                        bullets     = map bulletAniUp (filter boundcheck (map bulletUpdate bulletsafterenemies)) ,             -- Update the bullets 
+                        screen      = gameoverCheck screen,                                                                    -- Changes screen if game over
+                        enemies     = map enemAnimReset enemycollover,                                                         -- Puts enemies back inside the state after updates                                                                
+                        score       = score + killscore,                                                                       -- Update the score
+                        powerups    = powerupsover ++ maybeToList newpowerups,                                                 -- New list of powerups
+                        randomGen   = nrg                                                                                      -- Updated random
                         }
         where (bulletlist, fire)                                  = shootUpdate secs gstate                                                           -- Checks and fires if player can
               bullenem                                            = map (enemyShoot secs)  enemies                                                    -- Bullets, enemies after enemies have shot
@@ -55,7 +60,7 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
               collisioncheck                                      = (map (enemyColl player) updatedenemies)                                           -- Collision check of enemies          
               bulletAniUp bullet@Bullet{frame}                    | frame < 2 = bullet {frame = frame + secs}                                         -- Bullet animation frame update
                                                                   | otherwise = bullet {frame = 0}
-              screenChecker      scr                              | health <= 0 = WriteScore False                                                    -- Checks if game has ended
+              gameoverCheck      scr                              | health <= 0 = WriteScore False                                                    -- Checks if game has ended
                                                                   | otherwise = scr                                           
               hitAnimReset               frm                      | plrcolldamage > 0 = 1                                                             -- Hitanimation reset
                                                                   | frm < 0 = 0
@@ -140,20 +145,25 @@ input e gstate@GameState{screen = WriteScore False}   = return (writeScoreUpdate
 input e gstate@GameState{screen = RecentScores}       = return (recentScoreUpdate   e gstate)
 input e gstate@game  = return gstate
 
+--A screen to write the name of the score
 writeScoreUpdate :: Event -> GameState -> GameState
-writeScoreUpdate (EventKey (SpecialKey KeyEnter) Up   _ _) gstate@GameState{screen}  = gstate{screen  = WriteScore True}
-writeScoreUpdate (EventKey (Char       '\b')     Down _ _) gstate@GameState{plrname} = gstate{plrname = take (length plrname - 1) plrname} 
-writeScoreUpdate (EventKey (Char        x)       Down _ _) gst@GameState{plrname}    | (length plrname) < 6 = gst{plrname =  plrname ++ [x]}
-                                                                                     |otherwise = gst
-writeScoreUpdate _                                         gstate                    = gstate
+writeScoreUpdate (EventKey (SpecialKey KeyEnter) Up   _ _) gstate@GameState{screen}  = gstate{screen  = WriteScore True}                        -- Confirm name
+writeScoreUpdate (EventKey (Char       '\b')     Down _ _) gstate@GameState{plrname} = gstate{plrname = take (length plrname - 1) plrname}      -- Backspace 
+writeScoreUpdate (EventKey (Char        '~')       Down _ _) gst                     = gst                                                      -- Not allowed
+writeScoreUpdate (EventKey (Char        '%')       Down _ _) gst                     = gst                                                      -- Not allowed
+writeScoreUpdate (EventKey (Char        x)       Down _ _) gst@GameState{plrname}    | (length plrname) < 6 = gst{plrname =  plrname ++ [x]}    -- Not too long otherwise: add to gst
+                                                                                     | otherwise = gst
+writeScoreUpdate _                                         gstate                    = gstate                     
 
+--Go back to game or to main menu
 pausedGameUpdate :: Event -> GameState -> GameState
 pausedGameUpdate (EventKey (Char 'p')  Down _ _) gstate@GameState{screen} = gstate{screen = PlayGame} 
 pausedGameUpdate (EventKey (Char 'r') Down _ _)  GameState{randomGen}     = initialState randomGen
 pausedGameUpdate _                               gstate                   = gstate
 
--- Handle input of a key
+-- Handle input of a key when playing the game
 playGameUpdate :: Event -> GameState -> GameState
+
 --Pause button handle
 playGameUpdate (EventKey (Char 'p') Down _ _) gstate@GameState { screen} = gstate {screen = PausedGame}
 
@@ -173,8 +183,7 @@ updatePress (Char 'd')  b           keys = keys { d     = b }
 updatePress (SpecialKey KeySpace) b keys = keys { space = b }
 updatePress _                     _ x    = x
 
--- The following are input functions
-
+--The following update functions are self-explanatory
 mainMenuUpdate :: Event -> GameState -> GameState
 mainMenuUpdate (EventKey (SpecialKey KeySpace) Up _ _) gstate@GameState{screen} = gstate{screen = DifficultySelect}
 mainMenuUpdate (EventKey (SpecialKey KeyEnter) Up _ _) gstate@GameState{screen} = gstate{screen = ReadScore}
@@ -183,7 +192,6 @@ mainMenuUpdate _                                       gstate                   
 gameOverUpdate :: Event -> GameState -> GameState
 gameOverUpdate (EventKey _ _ _ _) GameState{randomGen} = initialState randomGen
 gameOverUpdate _                  gstate               = gstate
-
 
 difficultyUpdate :: Event -> GameState -> GameState
 difficultyUpdate (EventKey (Char '1') Down _ _) gstate@GameState{screen} = gstate{screen = LevelSelect, difficulty = 1}
