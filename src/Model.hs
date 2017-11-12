@@ -27,7 +27,7 @@ data GameState = GameState {
 data Bullet = Bullet { position:: Position, kind :: BulletType, frame :: Float}
 
 --Different screens for different points
-data GameScreen = MainMenu | GameOver| WriteScore Bool | ReadScore | PlayGame | DifficultySelect | LevelSelect | PausedGame | HighScores | NoScreen 
+data GameScreen = MainMenu | GameOver| WriteScore Bool | ReadScore | PlayGame | DifficultySelect | LevelSelect | PausedGame | RecentScores | NoScreen 
   deriving (Eq)
 
 data PowerUp = Health Float Position HitBox | FireRate Float Position HitBox | Damage Float Position HitBox
@@ -156,7 +156,28 @@ collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = ((x1 -
                                                                           where b1 = (w1 `quot` 2)
                                                                                 b2 = (w2 `quot` 2)
                                                                                 v1 = (h1 `quot` 2)
-                                                                                v2 = (h2 `quot` 2)                                                                               
+                                                                                v2 = (h2 `quot` 2)              
+                                                                                                                                                          
+-- AI which dodges bullets
+dodgeBullet :: [Bullet] -> Enemy -> Int
+dodgeBullet bullets Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), espeed}  
+                            | null tododge = 0
+                            | otherwise    = 2*(fromJust (head tododge))
+
+        where   tododge     = filter isJust (map zone bullets)
+                zone Bullet{position = (Position x y), kind = BulletType{speed = Move xmov ymov}}
+                            | abs ey -  abs y < 200                                         -- if in range y
+                            && (ymov > 0 && ey > y) || (ymov < 0 && ey < y)                 -- if closing in on y
+                            && (abs (abs ex - abs x) < width + 20)                          -- if closing in on x 
+                            = if ex < x     then Just (-espeed)
+                                            else Just espeed
+                            | otherwise       =    Nothing
+-- AI which trails player
+toPlayer :: Int -> Int -> Int -> Int
+toPlayer ex px espeed | ex < px - 1 = espeed
+                      | ex > px + 1 = -espeed - espeed
+                      | otherwise = 0
+
 -- ********************* CONSTANTS ***************
 -- Phase of the game that starts
 initialState :: StdGen -> GameState

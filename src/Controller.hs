@@ -12,12 +12,12 @@ import Data.List
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step secs gstate@GameState { screen, score, plrname, level, difficulty, runTime}                | screen == PausedGame || screen == MainMenu || screen == DifficultySelect || screen == LevelSelect || screen==GameOver || screen == HighScores || screen == WriteScore False = return gstate{runTime = runTime + secs}
+step secs gstate@GameState { screen, score, plrname, level, difficulty, runTime}                | screen == PausedGame || screen == MainMenu || screen == DifficultySelect || screen == LevelSelect || screen==GameOver || screen == RecentScores || screen == WriteScore False = return gstate{runTime = runTime + secs}
                                                                                                 | screen == WriteScore True = 
-                                                                                                                        do  appendFile "highscore"  (plrname ++"%" ++ (show score) ++"%" ++ (show level) ++"%" ++(show difficulty)++ "~"   ) 
+                                                                                                                        do  appendFile "recentscore"  (plrname ++"%" ++ (show score) ++"%" ++ (show level) ++"%" ++(show difficulty)++ "~"   ) 
                                                                                                                             return gstate{screen = GameOver}
-                                                                                                | screen == ReadScore =  do scores <- readFile "highscore"
-                                                                                                                            return gstate {scorelist = scores, screen = HighScores}
+                                                                                                | screen == ReadScore =  do scores <- readFile "recentscore"
+                                                                                                                            return gstate {scorelist = scores, screen = RecentScores}
                                                                                                 | otherwise = gameUpdate secs gstate
 
 gameUpdate :: Float -> GameState -> IO GameState
@@ -87,26 +87,6 @@ aiMove enemy@Enemy{epos = (Position ex ey), eai, espeed} GameState{player = Play
             else    Move (dodgeBullet bullets enemy)  (-espeed)
       | otherwise = Move 0                            (-espeed)                            -- stationary ai
 
--- AI which dodges bullets
-dodgeBullet :: [Bullet] -> Enemy -> Int
-dodgeBullet bullets Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), espeed}  
-                            | null tododge = 0
-                            | otherwise    = 2*(fromJust (head tododge))
-
-        where   tododge     = filter isJust (map zone bullets)
-                zone Bullet{position = (Position x y), kind = BulletType{speed = Move xmov ymov}}
-                            | abs ey -  abs y < 200                                         -- if in range y
-                            && (ymov > 0 && ey > y) || (ymov < 0 && ey < y)                 -- if closing in on y
-                            && (abs (abs ex - abs x) < width + 20)                          -- if closing in on x 
-                            = if ex < x     then Just (-espeed)
-                                            else Just espeed
-                            | otherwise       =    Nothing
--- AI which trails player
-toPlayer :: Int -> Int -> Int -> Int
-toPlayer ex px espeed | ex < px - 1 = espeed
-                      | ex > px + 1 = -espeed - espeed
-                      | otherwise = 0
-
 -- Generates random powerups
 getNewPowerups :: GameState -> (Maybe PowerUp,StdGen) 
 getNewPowerups gs@GameState{difficulty, randomGen}    | chance == 0 = (Just(options!!putype),rg4)
@@ -157,7 +137,7 @@ input e gstate@GameState{screen = PlayGame}           = return (playGameUpdate  
 input e gstate@GameState{screen = PausedGame}         = return (pausedGameUpdate    e gstate)
 input e gstate@GameState{screen = GameOver}           = return (gameOverUpdate      e gstate)
 input e gstate@GameState{screen = WriteScore False}   = return (writeScoreUpdate    e gstate)
-input e gstate@GameState{screen = HighScores}         = return (highScoreUpdate     e gstate)
+input e gstate@GameState{screen = RecentScores}       = return (recentScoreUpdate   e gstate)
 input e gstate@game  = return gstate
 
 writeScoreUpdate :: Event -> GameState -> GameState
@@ -217,6 +197,6 @@ levelUpdate (EventKey (Char '2') Down _ _) gstate@GameState{screen} = gstate{scr
 levelUpdate (EventKey (Char '3') Down _ _) gstate@GameState{screen} = gstate{screen = PlayGame, level = 3}
 levelUpdate _                              gstate                   = gstate
 
-highScoreUpdate :: Event -> GameState -> GameState
-highScoreUpdate (EventKey (SpecialKey KeyEnter) Up _ _)  gstate@GameState{screen} = gstate{screen = MainMenu}
-highScoreUpdate _                                        gstate                   = gstate 
+recentScoreUpdate :: Event -> GameState -> GameState
+recentScoreUpdate (EventKey (SpecialKey KeyEnter) Up _ _)  gstate@GameState{screen} = gstate{screen = MainMenu}
+recentScoreUpdate _                                        gstate                   = gstate 
