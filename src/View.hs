@@ -124,6 +124,7 @@ colorFlow time | ( mod' time 2)< 1 = (makeColor (1 - ( mod' time 1)) ( mod' time
                | otherwise = (makeColor ( mod' time 1 ) (1 - ( mod' time 1)) ( mod' time 1 ) 1)
 
 -- Function for making the text bold
+fatText :: String -> Picture
 fatText str = pictures [translate x y (Text str)| x <-[-4..4], y<-[-4..4]]
 
 -- Function for making pictures scrollby
