@@ -26,7 +26,7 @@ data GameState = GameState {
 --Bullet with position, type and animation frame
 data Bullet = Bullet { position:: Position, kind :: BulletType, frame :: Float}
 
---Different screens for different points
+--Different screens for different states of the game
 data GameScreen = MainMenu | GameOver| WriteScore Bool | ReadScore | PlayGame | DifficultySelect | LevelSelect | PausedGame | HighScores | NoScreen 
   deriving (Eq)
 
@@ -139,7 +139,8 @@ enemyKill enemy@Enemy{ehealth, killAnim}                            | ehealth > 
                                                                     | killAnim == 0 = Just enemy{killAnim = scoreAnim}
                                                                     | killAnim < 0 = Nothing
                                                                     | otherwise = Just enemy
---Updates the score for killing an enemy
+
+--Updates the score for killing an enemy when the killing animation starts
 enemyScore :: Enemy -> Int
 enemyScore enemy@Enemy{ehealth, killpoints, killAnim}               | ehealth > 0 = 0
                                                                     | killAnim == scoreAnim = killpoints
@@ -147,14 +148,14 @@ enemyScore enemy@Enemy{ehealth, killpoints, killAnim}               | ehealth > 
 --Checks if enemy can fire something
 enemyShoot ::  Float -> Enemy -> (Maybe Bullet,Enemy)
 enemyShoot secs enem@Enemy{eBullet = eBullet@BulletType{size = HitBox bsx bsy }, eLastFire, epos = (Position xp yp), ehitbox= (HitBox x y)} 
-      | enemyCanShoot enem = (Just (Bullet (Position xp (yp- (fromIntegral y) `div` 2 - (bsx `div` 2 ))) eBullet 0) , enem{ eLastFire = 0}  )
-      | otherwise = (Nothing,  enem{ eLastFire = secs + eLastFire})
+      | enemyCanShoot enem = (Just (Bullet (Position xp (yp- (fromIntegral y) `div` 2 - (bsx `div` 2 ))) eBullet 0) , enem{ eLastFire = 0}  ) --Puts bullet below enemy and updates the firetime
+      | otherwise = (Nothing,  enem{ eLastFire = secs + eLastFire})   --No bullet update the lastfire time
 
 --Checks if enemy can shoot
 enemyCanShoot :: Enemy -> Bool                                            
 enemyCanShoot Enemy{efireRate, eLastFire} | efireRate < eLastFire = True
                                           | otherwise             = False
---Collision detection 
+--Collision detection logic
 collision:: (HitBox, Position) -> (HitBox, Position) -> Bool
 collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = ((x1 - b1) < (x2 + b2)) &&
                                                                           ((x1 + b1) > (x2 - b2)) &&
