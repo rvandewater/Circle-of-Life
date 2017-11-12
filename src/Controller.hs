@@ -22,16 +22,16 @@ step secs gstate@GameState { screen, score, plrname, level, difficulty, runTime}
 
 gameUpdate :: Float -> GameState -> IO GameState
 gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate, bullet, invincibility}, screen, keys, bullets, enemies, randomGen, score, powerups} =
-     return $ gstate { 
-                                          elapsedTime = elapsedTime gstate + secs, 
-                                          player      = plr {pos = movementUpdate keys pos, lastFire = fire, health = health - plrcolldamage, hitAnim = hitAnimReset hitAnim, invincibility = playerinvinc},
-                                          bullets     = map bulletAniUp (filter boundcheck (map bulletUpdate bulletsafterenemies)) , 
-                                          screen      = screenChecker screen, 
-                                          enemies     = map enemAnimReset enemycollover,
-                                          score       = score + killscore,
-                                          powerups    = powerupsover ++ maybeToList newpowerups,
-                                          randomGen   = nrg
-                                          }
+     return $ gstate    { 
+                        elapsedTime = elapsedTime gstate + secs, 
+                        player      = plr {pos = movementUpdate keys pos, lastFire = fire, health = health - plrcolldamage, hitAnim = hitAnimReset hitAnim, invincibility = playerinvinc},
+                        bullets     = map bulletAniUp (filter boundcheck (map bulletUpdate bulletsafterenemies)) , 
+                        screen      = screenChecker screen, 
+                        enemies     = map enemAnimReset enemycollover,
+                        score       = score + killscore,
+                        powerups    = powerupsover ++ maybeToList newpowerups,
+                        randomGen   = nrg
+                        }
         where (bulletlist, fire)                                  = shootUpdate secs gstate                                                           -- Checks and fires if player can
               bullenem                                            = map (enemyShoot secs)  enemies                                                    -- Bullets, enemies after enemies have shot
               enemsaftershoot                                     = map snd bullenem                                                                  -- Enemies after bulletshot  
