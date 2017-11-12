@@ -14,7 +14,7 @@ view bg gs@GameState{screen,score, scorelist, plrname, runTime}
         | screen == PausedGame          = return (pausedGameView runTime)
         | screen == DifficultySelect    = return  difficultySelectView
         | screen == LevelSelect         = return  levelSelectView
-        | screen == RecentScores          = return (recentScores scorelist)
+        | screen == RecentScores        = return (recentScores scorelist)
         | screen == (WriteScore False ) = return (nameEnterView plrname)
         | screen == PlayGame            = return (gameView bg gs)
         | otherwise                     = return blank
@@ -108,7 +108,6 @@ getModel m | m == 0                                                             
                 | m == 4                                                                = pictures [color cyan (translate 0 20 (rotate 180 (triangle 50))),color black (translate 0 (-20) (triangle 50))]
                 | otherwise                                                             = (color black (rectangleSolid 50 50))
                                                                                                 where triangle s = polygon [ (0,0), (s / 2, s), ((-s) / 2,s), (0,0) ]
-
 -- Visualizing the informationbar on top of the gameview, displaying health and score   
 informationVisual ::  GameState -> Picture                                                                                                     
 informationVisual gstate             = pictures[translate  0 ((fromIntegral screeny/2)) (color (makeColor 0.5 0.5 0.5 0.5) (rectangleSolid (fromIntegral screenx) 120))

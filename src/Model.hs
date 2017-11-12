@@ -155,7 +155,7 @@ enemyShoot secs enem@Enemy{eBullet = eBullet@BulletType{size = HitBox bsx bsy },
 enemyCanShoot :: Enemy -> Bool                                            
 enemyCanShoot Enemy{efireRate, eLastFire} | efireRate < eLastFire = True
                                           | otherwise             = False
---Collision detection logic
+--Collision detection logic depending on the position and hitboxes
 collision:: (HitBox, Position) -> (HitBox, Position) -> Bool
 collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = ((x1 - b1) < (x2 + b2)) &&
                                                                           ((x1 + b1) > (x2 - b2)) &&
@@ -169,22 +169,22 @@ collision (HitBox w1 h1, Position x1 y1) (HitBox w2 h2, Position x2 y2) = ((x1 -
                                                                                                                                                           
 -- AI which dodges bullets
 dodgeBullet :: [Bullet] -> Enemy -> Int
-dodgeBullet bullets Enemy{epos = (Position ex ey), ehitbox = (HitBox width height), espeed}  
-                            | null tododge = 0
-                            | otherwise    = 2*(fromJust (head tododge))
+dodgeBullet bullets Enemy{epos = (Position ex ey), ehitbox  = (HitBox width height), espeed}  
+                    | null tododge               = 0                                      -- If there is nothing to dodge, keep your path
+                    | otherwise                  = 2*(fromJust (head tododge))            -- If there is something to dodge, dodge with a fast burst
 
-        where   tododge     = filter isJust (map zone bullets)
+        where   tododge     = filter isJust (map zone bullets)                            -- Filter for incomming bullets
                 zone Bullet{position = (Position x y), kind = BulletType{speed = Move xmov ymov}}
-                            | abs ey -  abs y < 200                                         -- if in range y
-                            && (ymov > 0 && ey > y) || (ymov < 0 && ey < y)                 -- if closing in on y
-                            && (abs (abs ex - abs x) < width + 20)                          -- if closing in on x 
-                            = if ex < x     then Just (-espeed)
-                                            else Just espeed
+                            | abs ey -  abs y < 200                                       -- If in range y
+                            && (ymov > 0 && ey > y) || (ymov < 0 && ey < y)               -- If closing in on y
+                            && (abs (abs ex - abs x) < width + 20)                        -- If closing in on x 
+                            = if ex < x     then Just (-espeed)                           -- If to the left, move left 
+                                            else Just espeed                              -- If to the right, move right
                             | otherwise       =    Nothing
 -- AI which trails player
 toPlayer :: Int -> Int -> Int -> Int
-toPlayer ex px espeed | ex < px - 1 = espeed
-                      | ex > px + 1 = -espeed - espeed
+toPlayer ex px espeed | ex < px - 1 = espeed                                              -- if you are left, move right
+                      | ex > px + 1 = -espeed - espeed                                    -- if you are right, move left
                       | otherwise = 0
 
 -- ********************* CONSTANTS ***************
