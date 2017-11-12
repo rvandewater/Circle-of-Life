@@ -1,5 +1,6 @@
 {-# language NamedFieldPuns #-}
 module View where
+        
 import Graphics.Gloss
 import Model
 import Data.Fixed

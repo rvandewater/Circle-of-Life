@@ -188,7 +188,7 @@ toPlayer ex px espeed | ex < px - 1 = espeed                                    
                       | otherwise = 0
 
 -- ********************* CONSTANTS ***************
--- Phase of the game that starts
+-- Phase of the standard game
 initialState :: StdGen -> GameState
 initialState = GameState 
                          0
@@ -206,7 +206,6 @@ initialState = GameState
                          "could not retrieve score"
 
 --Select enemy function which selects from a list with the given difficulty
-
 selectEnemy :: Int -> Int -> Enemy
 --                         position   hitbox           fireRate  bullettype                lastfire  health    ai  speed killpoints  HitAnim DeathAnim
 selectEnemy d sel = [Enemy enemySpawn (HitBox 50 50)   2         (difMod standardEBullet d)  0         4       0   2     1           0       0
