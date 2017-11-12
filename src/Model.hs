@@ -209,11 +209,11 @@ initialState = GameState
 
 selectEnemy :: Int -> Int -> Enemy
 --                         position   hitbox           fireRate  bullettype                lastfire  health    ai  speed killpoints  HitAnim DeathAnim
-selectEnemy d sel = [Enemy enemySpawn (HitBox 50 50)   2         (difMod standardEBullet d)  0         5       0   2     1           0       0
+selectEnemy d sel = [Enemy enemySpawn (HitBox 50 50)   2         (difMod standardEBullet d)  0         4       0   2     1           0       0
                     ,Enemy enemySpawn (HitBox 60 60)   4         (difMod heavyEBullet d)     0         20      1   2     5           0       0
                     ,Enemy enemySpawn (HitBox 60 60)   0.1       (difMod rapidfireEBullet d) 0         5       2   2     7           0       0
-                    ,Enemy enemySpawn (HitBox 50 50)   2         (difMod fastEBullet d)      0         5       3   2     10          0       0
-                    ,Enemy enemySpawn (HitBox 50 60)   1         (difMod fastEBullet d)      0         5       4   2     20          0       0 ]!!sel
+                    ,Enemy enemySpawn (HitBox 50 50)   2         (difMod fastEBullet d)      0         6       3   2     10          0       0
+                    ,Enemy enemySpawn (HitBox 50 60)   1         (difMod fastEBullet d)      0         9       4   2     20          0       0 ]!!sel
 
 -- Change damage of bullet depending on difficulty
 difMod :: BulletType -> Int -> BulletType
@@ -238,7 +238,7 @@ bulletHitBox :: HitBox
 bulletHitBox = HitBox 10 10 
 
 bulletDamage :: Float
-bulletDamage = 5
+bulletDamage = 4
 
 screenx :: Int 
 screenx = 808
