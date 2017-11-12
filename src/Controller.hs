@@ -60,12 +60,12 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
               collisioncheck                                      = (map (enemyColl player) updatedenemies)                                           -- Collision check of enemies          
               bulletAniUp bullet@Bullet{frame}                    | frame < 2 = bullet {frame = frame + secs}                                         -- Bullet animation frame update
                                                                   | otherwise = bullet {frame = 0}
-              gameoverCheck      scr                              | health <= 0 = WriteScore False                                                    -- Checks if game has ended
+              gameoverCheck scr                                   | health <= 0 = WriteScore False                                                    -- Checks if game has ended
                                                                   | otherwise = scr                                           
-              hitAnimReset               frm                      | plrcolldamage > 0 = 1                                                             -- Hitanimation reset
+              hitAnimReset frm                                    | plrcolldamage > 0 = 1                                                             -- Hitanimation reset
                                                                   | frm < 0 = 0
                                                                   | otherwise = frm - secs
-              enemAnimReset  enem@Enemy{eHitAnim, killAnim}       | killAnim > 0 = enem{killAnim= killAnim - secs}                                    -- Enemy hit animation logic
+              enemAnimReset enem@Enemy{eHitAnim, killAnim}        | killAnim > 0 = enem{killAnim= killAnim - secs}                                    -- Enemy hit animation logic
                                                                   | eHitAnim > 0 = enem{eHitAnim = eHitAnim-secs}
                                                                   | eHitAnim <= 0 = enem{eHitAnim = 0}
               invinc                                              | plrcolldamage> 0 =  1                                                             -- Invincibility period check
@@ -75,8 +75,8 @@ gameUpdate secs gstate@GameState {player = player@Player {pos, hitbox, fireRate,
 enemyUpdate :: GameState -> [Enemy] -> ([Enemy],StdGen)
 enemyUpdate gs enemies  | isJust newEn = ((fromJust newEn) : (map positionUpdate enemies),rg)
                         | otherwise    = (map positionUpdate enemies,rg)
-                              where positionUpdate en@Enemy{epos, ehitbox}  = en{epos = updatePosE (aiMove en gs) epos ehitbox}
-                                    (newEn, rg)    = newEnemy gs
+                              where positionUpdate en@Enemy{epos, ehitbox}    = en{epos = updatePosE (aiMove en gs) epos ehitbox}
+                                    (newEn, rg)                               = newEnemy gs
 
 -- Creating movement, depending on the choosen AI
 aiMove :: Enemy -> GameState -> Move
@@ -119,10 +119,10 @@ bulletUpdate (Bullet pos (BulletType speed box dmg pic) up) = (Bullet (updatePos
 -- Decides wether the enemy can shoot and returns the updated list of bullets
 shootUpdate :: Float -> GameState -> ([Bullet],Float)
 shootUpdate secs gstate@GameState { elapsedTime, bullets, player = player@Player {pos = Position {xpos,ypos}, hitbox, fireRate, bullet= thisbull@BulletType{size}, lastFire }, keys = keys@KeysPressed {space}} 
-  | canshoot = ((Bullet (Position xpos (ypos + (sizer hitbox) +(sizer size) )) thisbull 0): bullets, 0 ) 
-  | otherwise = (bullets, lastFire + secs )
-    where canshoot = space && (lastFire> fireRate)
-          sizer (HitBox xbox ybox) = ybox `quot` 2
+  | canshoot      = ((Bullet (Position xpos (ypos + (sizer hitbox) +(sizer size) )) thisbull 0): bullets, 0 ) 
+  | otherwise     = (bullets, lastFire + secs )
+   where canshoot = space && (lastFire> fireRate)
+         sizer (HitBox xbox ybox) = ybox `quot` 2
                                                          
 -- Updating Position depending on keys pressed
 movementUpdate :: KeysPressed -> Position -> Position
@@ -200,10 +200,10 @@ difficultyUpdate (EventKey (Char '3') Down _ _) gstate@GameState{screen} = gstat
 difficultyUpdate _                              gstate                   = gstate
 
 levelUpdate :: Event -> GameState -> GameState
-levelUpdate (EventKey (Char '1') Down _ _) gstate@GameState{screen} = gstate{screen = PlayGame, level = 1}
-levelUpdate (EventKey (Char '2') Down _ _) gstate@GameState{screen} = gstate{screen = PlayGame, level = 2}
-levelUpdate (EventKey (Char '3') Down _ _) gstate@GameState{screen} = gstate{screen = PlayGame, level = 3}
-levelUpdate _                              gstate                   = gstate
+levelUpdate (EventKey (Char '1') Down _ _) gstate@GameState{screen}      = gstate{screen = PlayGame, level = 1}
+levelUpdate (EventKey (Char '2') Down _ _) gstate@GameState{screen}      = gstate{screen = PlayGame, level = 2}
+levelUpdate (EventKey (Char '3') Down _ _) gstate@GameState{screen}      = gstate{screen = PlayGame, level = 3}
+levelUpdate _                              gstate                        = gstate
 
 recentScoreUpdate :: Event -> GameState -> GameState
 recentScoreUpdate (EventKey (SpecialKey KeyEnter) Up _ _)  gstate@GameState{screen} = gstate{screen = MainMenu}
